@@ -43,12 +43,6 @@ resource "aws_eks_node_group" "default" {
   tags = var.tags
 }
 
-resource "aws_iam_role" "cluster" {
-  name = "${var.cluster_name}-eks-cluster-role"
-
-  assume_role_policy = data.aws_iam_policy_document.eks_assume_role_policy.json
-}
-
 data "aws_iam_policy_document" "eks_assume_role_policy" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -58,6 +52,12 @@ data "aws_iam_policy_document" "eks_assume_role_policy" {
       identifiers = ["eks.amazonaws.com"]
     }
   }
+}
+
+resource "aws_iam_role" "cluster" {
+  name               = "${var.cluster_name}-eks-cluster-role"
+  assume_role_policy = data.aws_iam_policy_document.eks_assume_role_policy.json
+  tags               = var.tags
 }
 
 // Optionally, output kubeconfig for use with kubectl
