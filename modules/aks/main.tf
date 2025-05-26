@@ -21,6 +21,9 @@ data "azurerm_resource_group" "aks" {
   name = var.resource_group_name
 }
 
+# Get the current tenant ID if not provided
+data "azurerm_client_config" "current" {}
+
 resource "azurerm_kubernetes_cluster" "this" {
   name                = var.cluster_name
   location            = data.azurerm_resource_group.aks.location
@@ -51,9 +54,10 @@ resource "azurerm_kubernetes_cluster" "this" {
   }
 
   azure_active_directory_role_based_access_control {
-    managed                = true
+    managed            = true
+    tenant_id          = var.tenant_id != null ? var.tenant_id : data.azurerm_client_config.current.tenant_id
+    azure_rbac_enabled = var.azure_rbac_enabled
     admin_group_object_ids = var.admin_group_object_ids
-    azure_rbac_enabled     = var.azure_rbac_enabled
   }
 
   network_profile {
@@ -67,36 +71,11 @@ resource "azurerm_kubernetes_cluster" "this" {
   }
 
   api_server_access_profile {
-    authorized_ip_ranges = var.api_server_authorized_ip_ranges
-    enable_private_cluster = var.enable_private_cluster
+    authorized_ip_ranges     = var.api_server_authorized_ip_ranges
+    enable_private_cluster   = var.enable_private_cluster
   }
 
-  addon_profile {
-    dynamic "azure_policy" {
-      for_each = var.enable_azure_policy ? [1] : []
-      content {
-        enabled = true
-      }
-    }
-
-    dynamic "oms_agent" {
-      for_each = var.enable_log_analytics_workspace ? [1] : []
-      content {
-        enabled                    = true
-        log_analytics_workspace_id = azurerm_log_analytics_workspace.aks[0].id
-      }
-    }
-
-    dynamic "azure_keyvault_secrets_provider" {
-      for_each = var.enable_key_vault_secrets_provider ? [1] : []
-      content {
-        enabled                  = true
-        secret_rotation_enabled  = var.secret_rotation_enabled
-        secret_rotation_interval = var.secret_rotation_interval
-      }
-    }
-  }
-
+  # Maintenance window
   maintenance_window {
     allowed {
       day   = var.maintenance_window_day
@@ -104,9 +83,8 @@ resource "azurerm_kubernetes_cluster" "this" {
     }
   }
 
-  auto_upgrade_profile {
-    upgrade_channel = var.upgrade_channel
-  }
+  # Auto upgrade channel
+  automatic_channel_upgrade = var.upgrade_channel
 
   tags = var.tags
 
@@ -118,6 +96,7 @@ resource "azurerm_kubernetes_cluster" "this" {
   }
 }
 
+# Create Log Analytics workspace if enabled
 resource "azurerm_log_analytics_workspace" "aks" {
   count               = var.enable_log_analytics_workspace ? 1 : 0
   name                = "${var.cluster_name}-logs"
@@ -128,6 +107,70 @@ resource "azurerm_log_analytics_workspace" "aks" {
   tags                = var.tags
 }
 
+# Enable Azure Monitor for containers if Log Analytics workspace is enabled
+resource "azurerm_monitor_diagnostic_setting" "aks" {
+  count                      = var.enable_log_analytics_workspace ? 1 : 0
+  name                       = "${var.cluster_name}-diagnostic-settings"
+  target_resource_id         = azurerm_kubernetes_cluster.this.id
+  log_analytics_workspace_id = azurerm_log_analytics_workspace.aks[0].id
+
+  log {
+    category = "kube-apiserver"
+    enabled  = true
+  }
+
+  log {
+    category = "kube-audit"
+    enabled  = true
+  }
+
+  log {
+    category = "kube-audit-admin"
+    enabled  = true
+  }
+
+  log {
+    category = "kube-controller-manager"
+    enabled  = true
+  }
+
+  log {
+    category = "kube-scheduler"
+    enabled  = true
+  }
+
+  log {
+    category = "cluster-autoscaler"
+    enabled  = true
+  }
+
+  log {
+    category = "guard"
+    enabled  = true
+  }
+
+  metric {
+    category = "AllMetrics"
+    enabled  = true
+  }
+}
+
+# Enable Azure Policy add-on if specified
+resource "azurerm_kubernetes_cluster_azure_policy_enabled" "policy" {
+  count                = var.enable_azure_policy ? 1 : 0
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id
+}
+
+# Enable Key Vault Secrets Provider add-on if specified
+resource "azurerm_kubernetes_cluster_key_vault_secrets_provider" "secrets_provider" {
+  count                = var.enable_key_vault_secrets_provider ? 1 : 0
+  kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id
+  
+  secret_rotation_enabled  = var.secret_rotation_enabled
+  secret_rotation_interval = var.secret_rotation_interval
+}
+
+# Create additional node pools if specified
 resource "azurerm_kubernetes_cluster_node_pool" "additional" {
   for_each              = var.additional_node_pools
   name                  = each.key
