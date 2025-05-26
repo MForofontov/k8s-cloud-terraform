@@ -25,28 +25,28 @@ data "azurerm_resource_group" "aks" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_kubernetes_cluster" "this" {
-  name                = var.cluster_name
-  location            = data.azurerm_resource_group.aks.location
-  resource_group_name = data.azurerm_resource_group.aks.name
-  dns_prefix          = var.dns_prefix != null ? var.dns_prefix : var.cluster_name
-  kubernetes_version  = var.kubernetes_version
-  node_resource_group = var.node_resource_group_name
-  sku_tier            = var.sku_tier
+  name                    = var.cluster_name
+  location                = data.azurerm_resource_group.aks.location
+  resource_group_name     = data.azurerm_resource_group.aks.name
+  dns_prefix              = var.dns_prefix != null ? var.dns_prefix : var.cluster_name
+  kubernetes_version      = var.kubernetes_version
+  node_resource_group     = var.node_resource_group_name
+  sku_tier                = var.sku_tier
+  private_cluster_enabled = var.enable_private_cluster
 
   default_node_pool {
-    name                = var.default_node_pool_name
-    vm_size             = var.default_node_pool_vm_size
-    vnet_subnet_id      = var.subnet_id
-    zones               = var.availability_zones
-    node_count          = var.default_node_pool_node_count
-    # Handle auto-scaling correctly for this provider version
-    enable_auto_scaling = var.enable_auto_scaling
-    min_count           = var.enable_auto_scaling ? var.default_node_pool_min_count : null
-    max_count           = var.enable_auto_scaling ? var.default_node_pool_max_count : null
-    os_disk_size_gb     = var.os_disk_size_gb
-    os_disk_type        = var.os_disk_type
-    node_labels         = var.default_node_pool_labels
-    tags                = var.tags
+    name                 = var.default_node_pool_name
+    vm_size              = var.default_node_pool_vm_size
+    vnet_subnet_id       = var.subnet_id
+    zones                = var.availability_zones
+    node_count           = var.enable_auto_scaling ? null : var.default_node_pool_node_count
+    auto_scaling_enabled = var.enable_auto_scaling
+    min_count            = var.enable_auto_scaling ? var.default_node_pool_min_count : null
+    max_count            = var.enable_auto_scaling ? var.default_node_pool_max_count : null
+    os_disk_size_gb      = var.os_disk_size_gb
+    os_disk_type         = var.os_disk_type
+    node_labels          = var.default_node_pool_labels
+    tags                 = var.tags
   }
 
   identity {
@@ -54,9 +54,6 @@ resource "azurerm_kubernetes_cluster" "this" {
   }
 
   # Role-based access control
-  role_based_access_control_enabled = true
-  
-  # Azure AD integration
   azure_active_directory_role_based_access_control {
     admin_group_object_ids = var.admin_group_object_ids
     azure_rbac_enabled     = var.azure_rbac_enabled
@@ -74,8 +71,7 @@ resource "azurerm_kubernetes_cluster" "this" {
 
   # API server access
   api_server_access_profile {
-    authorized_ip_ranges     = var.api_server_authorized_ip_ranges
-    enable_private_cluster   = var.enable_private_cluster
+    authorized_ip_ranges   = var.api_server_authorized_ip_ranges
   }
 
   # Maintenance window
@@ -114,7 +110,6 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
   target_resource_id         = azurerm_kubernetes_cluster.this.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.aks[0].id
 
-  # Simplified diagnostic settings to avoid syntax issues
   log_analytics_destination_type = "Dedicated"
 }
 
@@ -133,9 +128,12 @@ resource "azurerm_kubernetes_cluster_node_pool" "additional" {
   kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id
   vm_size               = each.value.vm_size
   node_count            = each.value.min_count != null ? null : each.value.node_count
-  enable_auto_scaling   = each.value.min_count != null ? true : false
+  
+  # Correct auto-scaling attribute name
+  auto_scaling_enabled  = each.value.min_count != null ? true : false
   min_count             = each.value.min_count
   max_count             = each.value.max_count
+  
   os_disk_size_gb       = each.value.os_disk_size_gb
   os_disk_type          = each.value.os_disk_type
   vnet_subnet_id        = var.subnet_id
