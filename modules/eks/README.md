@@ -100,6 +100,7 @@ module "eks" {
     Terraform   = "true"
   }
 }
+```
 
 ## Requirements
 
