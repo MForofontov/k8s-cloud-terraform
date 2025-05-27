@@ -122,54 +122,54 @@ module "network" {
 
 ### Common Outputs
 
-| Name | Description |
-|------|-------------|
-| vpc_id | ID of the created VPC/VNet |
-| vpc_name | Name of the created VPC/VNet |
-| vpc_cidr | CIDR block of the VPC/VNet |
-| subnet_ids | List of all subnet IDs |
-| subnet_cidrs | List of all subnet CIDR blocks |
-| subnet_names | List of all subnet names |
-| public_subnet_ids | List of public subnet IDs |
-| private_subnet_ids | List of private subnet IDs |
+| Name | Description | Type |
+|------|-------------|------|
+| vpc_id | ID of the created VPC/VNet | string |
+| vpc_name | Name of the created VPC/VNet | string |
+| vpc_cidr | CIDR block of the VPC/VNet | string |
+| subnet_ids | List of all subnet IDs | list(string) |
+| subnet_cidrs | List of all subnet CIDR blocks | list(string) |
+| subnet_names | List of all subnet names | list(string) |
+| public_subnet_ids | List of public subnet IDs | list(string) |
+| private_subnet_ids | List of private subnet IDs | list(string) |
 
 ### AWS-Specific Outputs
 
-| Name | Description |
-|------|-------------|
-| aws_vpc_id | ID of the AWS VPC |
-| aws_internet_gateway_id | ID of the AWS Internet Gateway |
-| aws_nat_gateway_ids | List of AWS NAT Gateway IDs |
-| aws_route_table_ids | List of AWS Route Table IDs |
-| aws_security_group_id | ID of the AWS Security Group |
+| Name | Description | Type |
+|------|-------------|------|
+| aws_vpc_id | ID of the AWS VPC | string |
+| aws_internet_gateway_id | ID of the AWS Internet Gateway | string |
+| aws_nat_gateway_ids | List of AWS NAT Gateway IDs | list(string) |
+| aws_route_table_ids | List of AWS Route Table IDs | list(string) |
+| aws_security_group_id | ID of the AWS Security Group | string |
 
 ### Azure-Specific Outputs
 
-| Name | Description |
-|------|-------------|
-| azure_vnet_id | ID of the Azure VNet |
-| azure_subnet_ids | List of Azure Subnet IDs |
-| azure_nat_gateway_ids | List of Azure NAT Gateway IDs |
-| azure_route_table_ids | List of Azure Route Table IDs |
-| azure_network_security_group_id | ID of the Azure Network Security Group |
-| azure_ddos_protection_plan_id | ID of the Azure DDoS Protection Plan (if enabled) |
+| Name | Description | Type |
+|------|-------------|------|
+| azure_vnet_id | ID of the Azure VNet | string |
+| azure_subnet_ids | List of Azure Subnet IDs | list(string) |
+| azure_nat_gateway_ids | List of Azure NAT Gateway IDs | list(string) |
+| azure_route_table_ids | List of Azure Route Table IDs | list(string) |
+| azure_network_security_group_id | ID of the Azure Network Security Group | string |
+| azure_ddos_protection_plan_id | ID of the Azure DDoS Protection Plan (if enabled) | string |
 
 ### GCP-Specific Outputs
 
-| Name | Description |
-|------|-------------|
-| gcp_network_name | Name of the GCP VPC network |
-| gcp_subnetwork_ids | IDs of the GCP subnetworks |
-| gcp_router_ids | IDs of the GCP Cloud Routers |
-| gcp_nat_ids | IDs of the GCP Cloud NAT gateways |
-| gcp_service_networking_connection_id | ID of the GCP Service Networking connection |
-| gcp_vpc_service_controls_perimeter_name | Name of the GCP VPC Service Controls perimeter |
+| Name | Description | Type |
+|------|-------------|------|
+| gcp_network_name | Name of the GCP VPC network | string |
+| gcp_subnetwork_ids | IDs of the GCP subnetworks | list(string) |
+| gcp_router_ids | IDs of the GCP Cloud Routers | list(string) |
+| gcp_nat_ids | IDs of the GCP Cloud NAT gateways | list(string) |
+| gcp_service_networking_connection_id | ID of the GCP Service Networking connection | string |
+| gcp_vpc_service_controls_perimeter_name | Name of the GCP VPC Service Controls perimeter | string |
 
 ### Kubernetes Integration
 
-| Name | Description |
-|------|-------------|
-| k8s_network_config | Network configuration formatted for Kubernetes cluster creation |
+| Name | Description | Type |
+|------|-------------|------|
+| k8s_network_config | Network configuration formatted for Kubernetes cluster creation | object({provider = string, vpc_id = string, subnet_ids = list(string), public_subnet_ids = list(string), private_subnet_ids = list(string)}) |
 
 ## Example
 

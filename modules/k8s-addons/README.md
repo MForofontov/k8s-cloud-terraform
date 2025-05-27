@@ -94,6 +94,18 @@ module "kubernetes_addons" {
 | enable_prometheus | Enable Prometheus Stack | bool | false | no |
 | enable_loki | Enable Loki for log aggregation | bool | false | no |
 | enable_velero | Enable Velero for backup and restore | bool | false | no |
+| enable_karpenter | Enable Karpenter autoscaler | bool | false | no |
+| enable_fluent_bit | Enable Fluent Bit for log forwarding | bool | false | no |
+| enable_argocd | Enable ArgoCD GitOps controller | bool | false | no |
+| enable_sealed_secrets | Enable Sealed Secrets for secret management | bool | false | no |
+| enable_istio | Enable Istio service mesh | bool | false | no |
+| enable_kyverno | Enable Kyverno policy engine | bool | false | no |
+| enable_crossplane | Enable Crossplane for infrastructure provisioning | bool | false | no |
+| enable_calico | Enable Calico for network policies | bool | false | no |
+| enable_csi_snapshotter | Enable CSI Snapshotter for volume snapshots | bool | false | no |
+| enable_aws_load_balancer_controller | Enable AWS Load Balancer Controller | bool | false | no |
+| enable_app_gateway_ingress_controller | Enable Azure Application Gateway Ingress Controller | bool | false | no |
+| enable_gcp_ingress_controller | Enable GCP Ingress Controller | bool | false | no |
 | tags | Tags to apply to all resources | map(string) | {} | no |
 
 ### Addon-Specific Configuration
@@ -106,20 +118,94 @@ module "kubernetes_addons" {
 | prometheus | Prometheus Stack configuration | map(any) | {} | no |
 | loki | Loki configuration | map(any) | {} | no |
 | velero | Velero configuration | map(any) | {} | no |
+| karpenter | Karpenter configuration | map(any) | {} | no |
+| fluent_bit | Fluent Bit configuration | map(any) | {} | no |
+| argocd | ArgoCD configuration | map(any) | {} | no |
+| sealed_secrets | Sealed Secrets configuration | map(any) | {} | no |
+| istio | Istio configuration | map(any) | {} | no |
+| kyverno | Kyverno configuration | map(any) | {} | no |
+| crossplane | Crossplane configuration | map(any) | {} | no |
+| calico | Calico configuration | map(any) | {} | no |
+| csi_snapshotter | CSI Snapshotter configuration | map(any) | {} | no |
+| metrics_server | Metrics Server configuration | map(any) | {} | no |
+| cluster_autoscaler | Cluster Autoscaler configuration | map(any) | {} | no |
+| aws_load_balancer_controller | AWS Load Balancer Controller configuration | map(any) | {} | no |
+| app_gateway_ingress_controller | Azure Application Gateway Ingress Controller configuration | map(any) | {} | no |
+| gcp_ingress_controller | GCP Ingress Controller configuration | map(any) | {} | no |
 
 ## Output Variables
 
-| Name | Description |
-|------|-------------|
-| metrics_server_enabled | Whether Metrics Server is enabled |
-| cluster_autoscaler_enabled | Whether Cluster Autoscaler is enabled |
-| external_dns_enabled | Whether External DNS is enabled |
-| cert_manager_enabled | Whether Cert Manager is enabled |
-| ingress_nginx_enabled | Whether NGINX Ingress is enabled |
-| ingress_class_name | Name of the default ingress class |
-| prometheus_enabled | Whether Prometheus is enabled |
-| prometheus_endpoint | Endpoint of the Prometheus service |
-| grafana_endpoint | Endpoint of the Grafana service |
+| Name | Description | Type |
+|------|-------------|------|
+| metrics_server_enabled | Whether Metrics Server is enabled | bool |
+| metrics_server_namespace | Namespace where Metrics Server is deployed | string |
+| metrics_server_version | Version of Metrics Server deployed | string |
+| cluster_autoscaler_enabled | Whether Cluster Autoscaler is enabled | bool |
+| cluster_autoscaler_namespace | Namespace where Cluster Autoscaler is deployed | string |
+| cluster_autoscaler_version | Version of Cluster Autoscaler deployed | string |
+| external_dns_enabled | Whether External DNS is enabled | bool |
+| external_dns_namespace | Namespace where External DNS is deployed | string |
+| external_dns_version | Version of External DNS deployed | string |
+| cert_manager_enabled | Whether Cert Manager is enabled | bool |
+| cert_manager_namespace | Namespace where Cert Manager is deployed | string |
+| cert_manager_version | Version of Cert Manager deployed | string |
+| cert_manager_issuers | List of ClusterIssuers created | list(string) |
+| ingress_nginx_enabled | Whether NGINX Ingress is enabled | bool |
+| ingress_nginx_namespace | Namespace where NGINX Ingress is deployed | string |
+| ingress_nginx_version | Version of NGINX Ingress deployed | string |
+| ingress_class_name | Name of the default ingress class | string |
+| prometheus_enabled | Whether Prometheus is enabled | bool |
+| prometheus_namespace | Namespace where Prometheus is deployed | string |
+| prometheus_version | Version of Prometheus deployed | string |
+| prometheus_endpoint | Endpoint of the Prometheus service | string |
+| grafana_endpoint | Endpoint of the Grafana service | string |
+| loki_enabled | Whether Loki is enabled | bool |
+| loki_namespace | Namespace where Loki is deployed | string |
+| loki_version | Version of Loki deployed | string |
+| loki_endpoint | Endpoint of the Loki service | string |
+| velero_enabled | Whether Velero is enabled | bool |
+| velero_namespace | Namespace where Velero is deployed | string |
+| velero_version | Version of Velero deployed | string |
+| velero_schedules | List of backup schedules created | list(string) |
+| karpenter_enabled | Whether Karpenter is enabled | bool |
+| karpenter_namespace | Namespace where Karpenter is deployed | string |
+| karpenter_version | Version of Karpenter deployed | string |
+| fluent_bit_enabled | Whether Fluent Bit is enabled | bool |
+| fluent_bit_namespace | Namespace where Fluent Bit is deployed | string |
+| fluent_bit_version | Version of Fluent Bit deployed | string |
+| argocd_enabled | Whether ArgoCD is enabled | bool |
+| argocd_namespace | Namespace where ArgoCD is deployed | string |
+| argocd_version | Version of ArgoCD deployed | string |
+| argocd_endpoint | Endpoint of the ArgoCD UI service | string |
+| sealed_secrets_enabled | Whether Sealed Secrets is enabled | bool |
+| sealed_secrets_namespace | Namespace where Sealed Secrets is deployed | string |
+| sealed_secrets_version | Version of Sealed Secrets deployed | string |
+| istio_enabled | Whether Istio is enabled | bool |
+| istio_namespace | Namespace where Istio is deployed | string |
+| istiod_version | Version of Istiod deployed | string |
+| istio_ingress_enabled | Whether Istio Ingress Gateway is enabled | bool |
+| istio_ingress_endpoint | Endpoint of the Istio Ingress Gateway | string |
+| kyverno_enabled | Whether Kyverno is enabled | bool |
+| kyverno_namespace | Namespace where Kyverno is deployed | string |
+| kyverno_version | Version of Kyverno deployed | string |
+| crossplane_enabled | Whether Crossplane is enabled | bool |
+| crossplane_namespace | Namespace where Crossplane is deployed | string |
+| crossplane_version | Version of Crossplane deployed | string |
+| calico_enabled | Whether Calico is enabled | bool |
+| calico_namespace | Namespace where Calico is deployed | string |
+| calico_version | Version of Calico deployed | string |
+| csi_snapshotter_enabled | Whether CSI Snapshotter is enabled | bool |
+| csi_snapshotter_namespace | Namespace where CSI Snapshotter is deployed | string |
+| aws_load_balancer_controller_enabled | Whether AWS Load Balancer Controller is enabled | bool |
+| aws_load_balancer_controller_namespace | Namespace where AWS Load Balancer Controller is deployed | string |
+| aws_load_balancer_controller_version | Version of AWS Load Balancer Controller deployed | string |
+| app_gateway_ingress_controller_enabled | Whether Azure Application Gateway Ingress Controller is enabled | bool |
+| app_gateway_ingress_controller_namespace | Namespace where Azure Application Gateway Ingress Controller is deployed | string |
+| gcp_ingress_controller_enabled | Whether GCP Ingress Controller is enabled | bool |
+| gcp_ingress_controller_namespace | Namespace where GCP Ingress Controller is deployed | string |
+| installed_addons | Map of all installed addons with their status | map(map(string)) |
+| installed_addon_names | List of enabled addon names | list(string) |
+| addons_health | Consolidated health status of all installed addons. Includes `all_healthy` boolean and per-addon health states. | object({all_healthy = bool, addons = map(object)}) |
 
 ## Cloud-Specific Examples
 
