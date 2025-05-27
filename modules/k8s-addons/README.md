@@ -20,7 +20,7 @@ This Terraform module simplifies the deployment of common Kubernetes addons acro
 | **App Gateway Ingress** | ❌ | ✅ | ❌ | Azure Application Gateway integration |
 | **GCP Ingress Controller** | ❌ | ❌ | ✅ | GCP Load Balancer integration |
 
-## Basic Usage
+## Usage
 
 ```hcl
 module "kubernetes_addons" {
