@@ -1,9 +1,5 @@
 # Enterprise Multi-Cloud Networking Module
 
-![Terraform Version](https://img.shields.io/badge/Terraform-%3E%3D1.0.0-623CE4)
-![Release](https://img.shields.io/badge/Release-1.5.0-brightgreen)
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-
 This enterprise-grade Terraform module creates foundational networking infrastructure across AWS, Azure, and GCP with a consistent interface. Designed specifically for Kubernetes deployments, it implements cloud provider best practices while maintaining a uniform API for multi-cloud environments.
 
 ## 🚀 Features
