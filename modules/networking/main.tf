@@ -582,7 +582,7 @@ resource "azurerm_network_watcher_flow_log" "this" {
   resource_group_name  = azurerm_resource_group.this[0].name
   name                 = "${var.name_prefix}-flow-log"
   
-  network_security_group_id = azurerm_network_security_group.this[0].id
+  target_resource_id   = azurerm_network_security_group.this[0].id
   storage_account_id        = azurerm_storage_account.flow_logs[0].id
   enabled                   = true
   

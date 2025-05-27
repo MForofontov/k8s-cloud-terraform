@@ -1,91 +1,165 @@
-# Cloud-Agnostic Networking Terraform Module
+# Enterprise Multi-Cloud Networking Module
 
-A comprehensive Terraform module to provision networking infrastructure across multiple cloud providers (AWS, Azure, and GCP) using a consistent interface. This module enables you to deploy similar networking topologies on different cloud platforms with minimal configuration changes.
+![Terraform Version](https://img.shields.io/badge/Terraform-%3E%3D1.0.0-623CE4)
+![Release](https://img.shields.io/badge/Release-1.5.0-brightgreen)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 
-## Features
+This enterprise-grade Terraform module creates foundational networking infrastructure across AWS, Azure, and GCP with a consistent interface. Designed specifically for Kubernetes deployments, it implements cloud provider best practices while maintaining a uniform API for multi-cloud environments.
 
-- **Multi-cloud support**: Deploy to AWS, Azure, or GCP using the same module
-- **VPC/VNet creation**: Provision the fundamental networking container for your cloud resources
-- **Subnet configuration**: Create multiple subnets with customizable CIDR ranges
-- **Public/private subnet support**: Designate which subnets should have direct internet access
-- **Internet connectivity**: Configure internet gateways for public subnet access
-- **NAT gateways**: Enable outbound internet access for private subnets
-- **Security groups/firewall rules**: Basic security configuration for network traffic
-- **Sensible defaults**: Automatic CIDR calculation if not explicitly provided
-- **Custom naming**: Flexible resource naming with defaults
+## 🚀 Features
 
-## Usage
+### Core Capabilities
+- **Unified Multi-Cloud API** - Deploy consistent networking topologies across AWS, Azure, and GCP
+- **Production-Ready VPC/VNet** - Secure, scalable network foundation with intelligent defaults
+- **Public/Private Subnet Architecture** - Proper isolation of workloads with controlled internet access
+- **Smart CIDR Management** - Automatic subnet calculation or explicit configuration
+- **Kubernetes-Optimized** - Network design aligned with Kubernetes best practices
 
-### AWS Example
+### Advanced Features
+- **IPv6 Support** - Dual-stack networking capability across providers
+- **Private Service Access** - VPC Endpoints (AWS), Service Endpoints (Azure), Private Service Connect (GCP)
+- **Enhanced Security** - Baseline security groups/firewall rules with principle of least privilege
+- **Flow Logging** - Network traffic analysis and troubleshooting capabilities
+- **High Availability Options** - Multi-AZ NAT gateways and redundant network paths
+
+### Enterprise Enhancements
+- **Consistent Tagging** - Uniform resource tagging strategy across clouds
+- **Comprehensive Outputs** - Rich output interface for module composition
+- **Network Security Posture** - Defense-in-depth approach with multiple security controls
+- **DDoS Protection** - Azure DDoS Protection Plan integration
+- **VPC Service Controls** - GCP enterprise security boundary enforcement
+
+## 📋 Usage Examples
+
+### Basic AWS Deployment
 
 ```hcl
 module "network" {
-  source = "github.com/your-organization/k8s-cloud-terraform//networking"
-
+  source         = "github.com/your-organization/k8s-cloud-terraform//modules/networking"
   cloud_provider = "aws"
   name_prefix    = "prod"
   vpc_cidr       = "10.0.0.0/16"
   
-  availability_zones     = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]
-  create_nat_gateway     = true
-  create_internet_gateway = true
+  # High-availability configuration
+  availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]
+  single_nat_gateway = false  # Create a NAT gateway in each AZ for high availability
+  
+  # Enable security and compliance features
+  enable_flow_logs        = true
+  enable_service_endpoints = true
   
   tags = {
-    Environment = "Production"
-    Terraform   = "true"
+    Environment  = "Production"
+    Terraform    = "true"
+    CostCenter   = "Platform"
+    BusinessUnit = "Engineering"
   }
 }
 ```
 
-### Azure Example
+### Azure Advanced Configuration
 
 ```hcl
 module "network" {
-  source = "github.com/your-organization/k8s-cloud-terraform//networking"
-
+  source         = "github.com/your-organization/k8s-cloud-terraform//modules/networking"
   cloud_provider = "azure"
   name_prefix    = "prod"
   vpc_cidr       = "10.0.0.0/16"
   azure_location = "eastus2"
   
+  # Enable IPv6 support
+  enable_ipv6 = true
+  
+  # Enable enterprise security features
+  azure_enable_ddos_protection = true
+  enable_flow_logs = true
+  flow_logs_retention_days = 90
+  
+  # Configure Azure service endpoints for enhanced security
+  enable_service_endpoints = true
+  azure_service_endpoints = [
+    "Microsoft.Storage", 
+    "Microsoft.KeyVault", 
+    "Microsoft.ContainerRegistry",
+    "Microsoft.AzureCosmosDB",
+    "Microsoft.Sql"
+  ]
+  
   # Optional: provide explicit subnet definitions
   subnet_cidrs = [
-    "10.0.0.0/24",
-    "10.0.1.0/24",
-    "10.0.2.0/24",
-    "10.0.3.0/24"
+    "10.0.0.0/24",  # Public subnet 1
+    "10.0.1.0/24",  # Public subnet 2
+    "10.0.2.0/24",  # Private subnet 1
+    "10.0.3.0/24",  # Private subnet 2
+    "10.0.4.0/24",  # Private subnet 3 (for database workloads)
   ]
   
   subnet_names = [
     "prod-public-1",
     "prod-public-2",
-    "prod-private-1",
-    "prod-private-2"
+    "prod-private-app-1",
+    "prod-private-app-2",
+    "prod-private-data"
   ]
   
+  # Configure which subnets are public vs private
+  public_subnet_indices = [0, 1]
+  private_subnet_indices = [2, 3, 4]
+  
+  # Configure subnet delegations for Azure PaaS services
+  azure_subnet_delegations = {
+    "aks-delegation" = {
+      service_name = "Microsoft.ContainerService/managedClusters"
+      actions      = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
+    }
+  }
+  
   tags = {
-    Environment = "Production"
-    Terraform   = "true"
+    Environment  = "Production"
+    Terraform    = "true"
+    CostCenter   = "Platform"
+    Department   = "Infrastructure"
   }
 }
 ```
 
-### GCP Example
+### GCP Enterprise Configuration
 
 ```hcl
 module "network" {
-  source = "github.com/your-organization/k8s-cloud-terraform//networking"
-
+  source         = "github.com/your-organization/k8s-cloud-terraform//modules/networking"
   cloud_provider = "gcp"
   name_prefix    = "prod"
   vpc_cidr       = "10.0.0.0/16"
   
-  gcp_project_id = "my-gcp-project"
-  gcp_region     = "us-central1"
+  # GCP project configuration
+  gcp_project_id     = "my-enterprise-project"
+  gcp_project_number = "123456789012"
+  gcp_region         = "us-central1"
+  
+  # Global routing enables cross-region networking
+  gcp_routing_mode   = "GLOBAL"
+  
+  # Enable VPC Service Controls for enterprise security
+  gcp_enable_vpc_service_controls = true
+  gcp_access_policy_id = "access-policy-id"
+  gcp_restricted_services = [
+    "storage.googleapis.com", 
+    "bigquery.googleapis.com",
+    "container.googleapis.com"
+  ]
+  
+  # Enable private service access
+  enable_service_endpoints = true
+  
+  # Enable flow logging
+  enable_flow_logs = true
   
   tags = {
     environment = "production"
     terraform   = "true"
+    team        = "platform"
+    application = "kubernetes"
   }
 }
 ```
@@ -101,111 +175,27 @@ module "network" {
 
 ## Inputs
 
-### Required Inputs
-
-| Name | Description | Type |
-|------|-------------|------|
-| cloud_provider | The cloud provider to deploy to (aws, azure, gcp) | `string` |
-
-### Common Inputs
-
-| Name | Description | Type | Default |
-|------|-------------|------|---------|
-| name_prefix | Prefix to use for naming resources | `string` | `"k8s"` |
-| vpc_name | Name of the VPC/VNet (defaults to `{name_prefix}-vpc`) | `string` | `null` |
-| vpc_cidr | CIDR block for the VPC/VNet | `string` | `"10.0.0.0/16"` |
-| subnet_cidrs | List of CIDR blocks for subnets | `list(string)` | `null` (auto-calculated) |
-| subnet_names | List of names for subnets | `list(string)` | `null` (auto-generated) |
-| public_subnet_indices | List of indices that should be public subnets | `list(number)` | `[0, 1]` |
-| private_subnet_indices | List of indices that should be private subnets | `list(number)` | `[2, 3]` |
-| create_internet_gateway | Whether to create an Internet Gateway | `bool` | `true` |
-| create_nat_gateway | Whether to create a NAT Gateway | `bool` | `true` |
-| tags | Tags to apply to all resources | `map(string)` | `{}` |
-
-### AWS Specific Inputs
-
-| Name | Description | Type | Default |
-|------|-------------|------|---------|
-| availability_zones | List of availability zones to use for AWS subnets | `list(string)` | `[]` |
-
-### Azure Specific Inputs
-
-| Name | Description | Type | Default |
-|------|-------------|------|---------|
-| azure_location | Azure region to deploy resources to | `string` | `"eastus"` |
-
-### GCP Specific Inputs
-
-| Name | Description | Type | Default |
-|------|-------------|------|---------|
-| gcp_project_id | GCP project ID | `string` | `null` |
-| gcp_region | GCP region to deploy resources to | `string` | `"us-central1"` |
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| cloud_provider | Cloud provider to use (aws, azure, gcp) | string | n/a | yes |
+| name_prefix | Prefix for all resource names | string | n/a | yes |
+| vpc_cidr | CIDR block for the VPC/VNet | string | "10.0.0.0/16" | no |
+| enable_flow_logs | Enable network flow logs | bool | false | no |
+| flow_logs_retention_days | Days to retain flow logs | number | 30 | no |
+| enable_service_endpoints | Enable private service endpoints | bool | false | no |
+| enable_ipv6 | Enable IPv6 support | bool | false | no |
+| single_nat_gateway | Use single NAT instead of per-AZ NATs | bool | true | no |
+| tags | Tags to apply to all resources | map(string) | {} | no |
 
 ## Outputs
 
-### Common Outputs
-
 | Name | Description |
 |------|-------------|
-| vpc_id | ID of the VPC/VNet |
-| vpc_name | Name of the VPC/VNet |
+| vpc_id | ID of the created VPC/VNet |
 | vpc_cidr | CIDR block of the VPC/VNet |
-| subnet_ids | List of subnet IDs |
-| subnet_cidrs | List of subnet CIDR blocks |
+| subnet_ids | List of all subnet IDs |
 | public_subnet_ids | List of public subnet IDs |
 | private_subnet_ids | List of private subnet IDs |
-
-### AWS Specific Outputs
-
-| Name | Description |
-|------|-------------|
-| aws_vpc_id | ID of the AWS VPC |
-| aws_internet_gateway_id | ID of the AWS Internet Gateway |
-| aws_nat_gateway_id | ID of the AWS NAT Gateway |
-| aws_security_group_id | ID of the AWS Security Group |
-
-### Azure Specific Outputs
-
-| Name | Description |
-|------|-------------|
-| azure_resource_group_name | Name of the Azure Resource Group |
-| azure_vnet_id | ID of the Azure VNet |
-| azure_nat_gateway_id | ID of the Azure NAT Gateway |
-| azure_network_security_group_id | ID of the Azure Network Security Group |
-
-### GCP Specific Outputs
-
-| Name | Description |
-|------|-------------|
-| gcp_network_id | ID of the GCP VPC |
-| gcp_network_name | Name of the GCP VPC |
-| gcp_router_nat_name | Name of the GCP Cloud NAT |
-
-## Architecture
-
-This module creates the following resources based on the cloud provider:
-
-### AWS
-- VPC with DNS support and hostnames
-- Public and private subnets across availability zones
-- Internet Gateway for public internet access
-- NAT Gateway for private subnet outbound traffic
-- Route tables for both public and private subnets
-- Security group with basic egress rules
-
-### Azure
-- Resource Group to contain all networking resources
-- Virtual Network with custom address space
-- Multiple subnets with configurable address prefixes
-- NAT Gateway for private subnet outbound traffic
-- Network Security Group with basic outbound rules
-
-### GCP
-- VPC Network with custom subnetworks mode
-- Multiple subnetworks with custom IP ranges
-- Cloud Router for dynamic routing
-- Cloud NAT for private subnet outbound traffic
-- Firewall rules for basic egress traffic
 
 ## License
 
