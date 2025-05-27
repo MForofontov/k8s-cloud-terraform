@@ -209,4 +209,4 @@ This module creates the following resources based on the cloud provider:
 
 ## License
 
-MIT
+This module is released under the MIT License.

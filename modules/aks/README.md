@@ -209,4 +209,4 @@ variable "additional_node_pools" {
 
 ## License
 
-MIT
+This module is released under the MIT License.

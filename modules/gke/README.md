@@ -278,4 +278,4 @@ module "gke" {
 
 ## License
 
-MIT
+This module is released under the MIT License.
