@@ -64,29 +64,112 @@ module "network" {
 
 ## Input Variables
 
+### Core Configuration
+
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | cloud_provider | Cloud provider to use (aws, azure, gcp) | string | n/a | yes |
 | name_prefix | Prefix for all resource names | string | n/a | yes |
 | vpc_cidr | CIDR block for the VPC/VNet | string | "10.0.0.0/16" | no |
-| enable_flow_logs | Enable network flow logs | bool | false | no |
-| flow_logs_retention_days | Days to retain flow logs | number | 30 | no |
-| enable_service_endpoints | Enable private service endpoints | bool | false | no |
-| enable_ipv6 | Enable IPv6 support | bool | false | no |
-| single_nat_gateway | Use single NAT instead of per-AZ NATs | bool | true | no |
+| subnet_cidrs | List of CIDR blocks for subnets | list(string) | null | no |
+| subnet_names | List of subnet names | list(string) | null | no |
+| public_subnet_indices | List of subnet indices that should be treated as public | list(number) | [0, 1] | no |
+| private_subnet_indices | List of subnet indices that should be treated as private | list(number) | [2, 3] | no |
+
+### Networking Features
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| create_internet_gateway | Whether to create an internet gateway for public subnets | bool | true | no |
+| create_nat_gateway | Whether to create NAT gateway(s) for private subnets | bool | true | no |
+| single_nat_gateway | Whether to use a single NAT gateway for all private subnets | bool | true | no |
+| enable_ipv6 | Whether to enable IPv6 support | bool | false | no |
+| enable_flow_logs | Whether to enable VPC flow logs | bool | false | no |
+| flow_logs_retention_days | Number of days to retain flow logs | number | 30 | no |
+| enable_service_endpoints | Whether to enable service endpoints/PrivateLink | bool | false | no |
 | tags | Tags to apply to all resources | map(string) | {} | no |
+
+### AWS-Specific Configuration
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| aws_region | AWS region where resources will be created | string | "us-west-2" | no |
+| availability_zones | List of availability zones to use | list(string) | [] | no |
+| aws_flow_log_traffic_type | Type of traffic to capture in flow logs | string | "ALL" | no |
+| aws_endpoint_services | List of AWS service endpoints to enable | list(string) | [] | no |
+
+### Azure-Specific Configuration
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| azure_location | Azure location where resources will be created | string | "eastus" | no |
+| azure_enable_ddos_protection | Whether to enable DDoS protection for Azure VNet | bool | false | no |
+| azure_service_endpoints | List of Azure service endpoints to enable | list(string) | ["Microsoft.Storage", "Microsoft.KeyVault"] | no |
+| azure_log_analytics_workspace_id | Azure Log Analytics workspace ID for flow logs | string | null | no |
+
+### GCP-Specific Configuration
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| gcp_project_id | GCP project ID where resources will be created | string | null | no |
+| gcp_region | GCP region where resources will be created | string | "us-central1" | no |
+| gcp_routing_mode | GCP network routing mode (REGIONAL or GLOBAL) | string | "REGIONAL" | no |
+| gcp_enable_vpc_service_controls | Whether to enable VPC Service Controls | bool | false | no |
+| gcp_access_policy_id | GCP Access Context Manager policy ID | string | null | no |
+| gcp_restricted_services | List of GCP services to restrict in perimeter | list(string) | ["storage.googleapis.com"] | no |
 
 ## Output Variables
 
-| Name | Description |
-|------|-------------|
-| vpc_id | ID of the created VPC/VNet |
-| vpc_cidr | CIDR block of the VPC/VNet |
-| subnet_ids | List of all subnet IDs |
-| public_subnet_ids | List of public subnet IDs |
-| private_subnet_ids | List of private subnet IDs |
-| nat_gateway_ids | List of NAT Gateway IDs |
-| security_group_id | ID of the main security group |
+### Common Outputs
+
+| Name | Description | Type |
+|------|-------------|------|
+| vpc_id | ID of the created VPC/VNet | string |
+| vpc_name | Name of the created VPC/VNet | string |
+| vpc_cidr | CIDR block of the VPC/VNet | string |
+| subnet_ids | List of all subnet IDs | list(string) |
+| subnet_cidrs | List of all subnet CIDR blocks | list(string) |
+| subnet_names | List of all subnet names | list(string) |
+| public_subnet_ids | List of public subnet IDs | list(string) |
+| private_subnet_ids | List of private subnet IDs | list(string) |
+
+### AWS-Specific Outputs
+
+| Name | Description | Type |
+|------|-------------|------|
+| aws_vpc_id | ID of the AWS VPC | string |
+| aws_internet_gateway_id | ID of the AWS Internet Gateway | string |
+| aws_nat_gateway_ids | List of AWS NAT Gateway IDs | list(string) |
+| aws_route_table_ids | List of AWS Route Table IDs | list(string) |
+| aws_security_group_id | ID of the AWS Security Group | string |
+
+### Azure-Specific Outputs
+
+| Name | Description | Type |
+|------|-------------|------|
+| azure_vnet_id | ID of the Azure VNet | string |
+| azure_subnet_ids | List of Azure Subnet IDs | list(string) |
+| azure_nat_gateway_ids | List of Azure NAT Gateway IDs | list(string) |
+| azure_route_table_ids | List of Azure Route Table IDs | list(string) |
+| azure_network_security_group_id | ID of the Azure Network Security Group | string |
+| azure_ddos_protection_plan_id | ID of the Azure DDoS Protection Plan (if enabled) | string |
+
+### GCP-Specific Outputs
+
+| Name | Description | Type |
+|------|-------------|------|
+| gcp_network_name | Name of the GCP VPC network | string |
+| gcp_subnetwork_ids | IDs of the GCP subnetworks | list(string) |
+| gcp_router_ids | IDs of the GCP Cloud Routers | list(string) |
+| gcp_nat_ids | IDs of the GCP Cloud NAT gateways | list(string) |
+| gcp_service_networking_connection_id | ID of the GCP Service Networking connection | string |
+| gcp_vpc_service_controls_perimeter_name | Name of the GCP VPC Service Controls perimeter | string |
+
+### Kubernetes Integration
+
+| Name | Description | Type |
+|------|-------------|------|
+| k8s_network_config | Network configuration formatted for Kubernetes cluster creation | object({provider = string, vpc_id = string, subnet_ids = list(string), public_subnet_ids = list(string), private_subnet_ids = list(string)}) |
 
 ## Example
 
