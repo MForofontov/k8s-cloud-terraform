@@ -32,7 +32,7 @@ terraform {
     }
     google = {
       source  = "hashicorp/google"
-      version = "~> 5.10.0"
+      version = "~> 5.20.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
@@ -180,8 +180,8 @@ resource "azuread_application" "k8s_app" {
 resource "azuread_service_principal" "k8s_sp" {
   count = local.use_azure ? 1 : 0
   
-  application_id = azuread_application.k8s_app[0].application_id
-  owners         = var.azure_application_owners
+  client_id               = azuread_application.k8s_app[0].client_id  # Changed from application_id to client_id
+  owners                  = var.azure_application_owners
   
   # Service principal settings
   app_role_assignment_required = false
@@ -193,7 +193,10 @@ resource "azuread_service_principal_password" "k8s_sp_password" {
   count = local.use_azure ? 1 : 0
   
   service_principal_id = azuread_service_principal.k8s_sp[0].id
-  end_date_relative    = "87600h" # 10 years
+  display_name         = "${local.resource_prefix}-k8s-sp-password"
+  
+  # Replace end_date_relative with end_date
+  end_date             = timeadd(timestamp(), "87600h") # 10 years
 }
 
 # Azure Role Assignments
