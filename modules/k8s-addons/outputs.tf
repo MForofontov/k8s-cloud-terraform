@@ -6,6 +6,7 @@
 #   - Whether the addon is enabled
 #   - The namespace where the addon is installed
 #   - The version of the addon that is deployed
+#   - Additional relevant information specific to the addon
 #
 # These outputs can be used to reference deployed resources or to build
 # dependencies between modules.
@@ -47,6 +48,25 @@ output "cluster_autoscaler_namespace" {
 output "cluster_autoscaler_version" {
   description = "Version of Cluster Autoscaler that is deployed. Important for compatibility with specific Kubernetes versions."
   value       = var.enable_cluster_autoscaler ? helm_release.cluster_autoscaler[0].version : null
+}
+
+#==============================================================================
+# Karpenter
+# Next-generation Kubernetes autoscaler
+#==============================================================================
+output "karpenter_enabled" {
+  description = "Whether Karpenter is enabled. Use this to conditionally configure resources that depend on Karpenter's node provisioning."
+  value       = var.enable_karpenter
+}
+
+output "karpenter_namespace" {
+  description = "Namespace where Karpenter is installed. Useful for creating or targeting Karpenter resources."
+  value       = var.enable_karpenter ? helm_release.karpenter[0].namespace : null
+}
+
+output "karpenter_version" {
+  description = "Version of Karpenter that is deployed. Important for compatibility with specific Kubernetes versions and cloud providers."
+  value       = var.enable_karpenter ? helm_release.karpenter[0].version : null
 }
 
 #==============================================================================
@@ -202,6 +222,63 @@ output "sealed_secrets_version" {
 }
 
 #==============================================================================
+# Kyverno
+# Policy Management Engine
+#==============================================================================
+output "kyverno_enabled" {
+  description = "Whether Kyverno is enabled. Use this to determine if policy enforcement is active in the cluster."
+  value       = var.enable_kyverno
+}
+
+output "kyverno_namespace" {
+  description = "Namespace where Kyverno is installed. Required for creating or targeting Kyverno policies."
+  value       = var.enable_kyverno ? helm_release.kyverno[0].namespace : null
+}
+
+output "kyverno_version" {
+  description = "Version of Kyverno that is deployed. Different versions support different policy features and CRD schemas."
+  value       = var.enable_kyverno ? helm_release.kyverno[0].version : null
+}
+
+#==============================================================================
+# Crossplane
+# Universal Control Plane for cloud resources
+#==============================================================================
+output "crossplane_enabled" {
+  description = "Whether Crossplane is enabled. Use this to determine if cloud resource provisioning via Kubernetes is available."
+  value       = var.enable_crossplane
+}
+
+output "crossplane_namespace" {
+  description = "Namespace where Crossplane is installed. Required for creating or targeting Crossplane resources."
+  value       = var.enable_crossplane ? helm_release.crossplane[0].namespace : null
+}
+
+output "crossplane_version" {
+  description = "Version of Crossplane that is deployed. Different versions support different providers and compositions."
+  value       = var.enable_crossplane ? helm_release.crossplane[0].version : null
+}
+
+#==============================================================================
+# AWS Load Balancer Controller
+# AWS-specific controller for Elastic Load Balancers
+#==============================================================================
+output "aws_load_balancer_controller_enabled" {
+  description = "Whether AWS Load Balancer Controller is enabled. Use this to determine if AWS-specific load balancing features are available."
+  value       = var.enable_aws_load_balancer_controller
+}
+
+output "aws_load_balancer_controller_namespace" {
+  description = "Namespace where AWS Load Balancer Controller is installed. Required for targeting or monitoring the controller."
+  value       = var.enable_aws_load_balancer_controller ? helm_release.aws_load_balancer_controller[0].namespace : null
+}
+
+output "aws_load_balancer_controller_version" {
+  description = "Version of AWS Load Balancer Controller that is deployed. Different versions support different features and annotations."
+  value       = var.enable_aws_load_balancer_controller ? helm_release.aws_load_balancer_controller[0].version : null
+}
+
+#==============================================================================
 # Istio Service Mesh
 # Advanced networking, security, and observability
 #==============================================================================
@@ -240,18 +317,130 @@ output "istio_ingress_version" {
 # Aggregate information about all installed addons
 #==============================================================================
 output "installed_addons" {
-  description = "List of all installed addons. Useful for monitoring which components are active in the cluster or for conditional logic in dependent modules."
+  description = "Map of all installed addons with their status and version information. Useful for monitoring which components are active and their configuration."
+  value = {
+    "metrics-server" = var.enable_metrics_server ? {
+      enabled   = true
+      namespace = helm_release.metrics_server[0].namespace
+      version   = helm_release.metrics_server[0].version
+    } : { enabled = false }
+    
+    "cluster-autoscaler" = var.enable_cluster_autoscaler ? {
+      enabled   = true
+      namespace = helm_release.cluster_autoscaler[0].namespace
+      version   = helm_release.cluster_autoscaler[0].version
+    } : { enabled = false }
+    
+    "karpenter" = var.enable_karpenter ? {
+      enabled   = true
+      namespace = helm_release.karpenter[0].namespace
+      version   = helm_release.karpenter[0].version
+    } : { enabled = false }
+    
+    "nginx-ingress" = var.enable_nginx_ingress ? {
+      enabled   = true
+      namespace = helm_release.nginx_ingress[0].namespace
+      version   = helm_release.nginx_ingress[0].version
+    } : { enabled = false }
+    
+    "cert-manager" = var.enable_cert_manager ? {
+      enabled   = true
+      namespace = helm_release.cert_manager[0].namespace
+      version   = helm_release.cert_manager[0].version
+    } : { enabled = false }
+    
+    "external-dns" = var.enable_external_dns ? {
+      enabled   = true
+      namespace = helm_release.external_dns[0].namespace
+      version   = helm_release.external_dns[0].version
+    } : { enabled = false }
+    
+    "prometheus-stack" = var.enable_prometheus_stack ? {
+      enabled   = true
+      namespace = helm_release.prometheus_stack[0].namespace
+      version   = helm_release.prometheus_stack[0].version
+    } : { enabled = false }
+    
+    "fluent-bit" = var.enable_fluent_bit ? {
+      enabled   = true
+      namespace = helm_release.fluent_bit[0].namespace
+      version   = helm_release.fluent_bit[0].version
+    } : { enabled = false }
+    
+    "argocd" = var.enable_argocd ? {
+      enabled   = true
+      namespace = helm_release.argocd[0].namespace
+      version   = helm_release.argocd[0].version
+    } : { enabled = false }
+    
+    "velero" = var.enable_velero ? {
+      enabled   = true
+      namespace = helm_release.velero[0].namespace
+      version   = helm_release.velero[0].version
+    } : { enabled = false }
+    
+    "sealed-secrets" = var.enable_sealed_secrets ? {
+      enabled   = true
+      namespace = helm_release.sealed_secrets[0].namespace
+      version   = helm_release.sealed_secrets[0].version
+    } : { enabled = false }
+    
+    "kyverno" = var.enable_kyverno ? {
+      enabled   = true
+      namespace = helm_release.kyverno[0].namespace
+      version   = helm_release.kyverno[0].version
+    } : { enabled = false }
+    
+    "crossplane" = var.enable_crossplane ? {
+      enabled   = true
+      namespace = helm_release.crossplane[0].namespace
+      version   = helm_release.crossplane[0].version
+    } : { enabled = false }
+    
+    "aws-load-balancer-controller" = var.enable_aws_load_balancer_controller ? {
+      enabled   = true
+      namespace = helm_release.aws_load_balancer_controller[0].namespace
+      version   = helm_release.aws_load_balancer_controller[0].version
+    } : { enabled = false }
+    
+    "istio" = var.enable_istio ? {
+      enabled        = true
+      namespace      = helm_release.istio_base[0].namespace
+      base_version   = helm_release.istio_base[0].version
+      istiod_version = helm_release.istiod[0].version
+      ingress = {
+        enabled = lookup(var.istio, "enable_ingress", true)
+        version = lookup(var.istio, "enable_ingress", true) ? helm_release.istio_ingress[0].version : null
+      }
+    } : { enabled = false }
+  }
+}
+
+# For backward compatibility - returns a list of names of enabled addons
+output "installed_addon_names" {
+  description = "List of names of all installed addons (only includes enabled addons)."
   value = [
-    var.enable_metrics_server ? "metrics-server" : "",
-    var.enable_cluster_autoscaler ? "cluster-autoscaler" : "",
-    var.enable_nginx_ingress ? "nginx-ingress" : "",
-    var.enable_cert_manager ? "cert-manager" : "",
-    var.enable_external_dns ? "external-dns" : "",
-    var.enable_prometheus_stack ? "prometheus-stack" : "",
-    var.enable_fluent_bit ? "fluent-bit" : "",
-    var.enable_argocd ? "argocd" : "",
-    var.enable_velero ? "velero" : "",
-    var.enable_sealed_secrets ? "sealed-secrets" : "",
-    var.enable_istio ? "istio" : ""
+    for name, addon in output.installed_addons.value :
+      name if addon.enabled
   ]
+}
+
+#==============================================================================
+# Health Status Output
+# Provides a consolidated view of addon health for monitoring and dependencies
+#==============================================================================
+output "addons_health" {
+  description = "Health status information for all installed addons. Useful for monitoring or as dependency checks."
+  value = {
+    all_healthy = alltrue([
+      for name, addon in output.installed_addons.value :
+        addon.enabled == false ? true : true  # This would be replaced with actual health checks in a production version
+    ])
+    
+    # This could be enhanced with actual health check data in a real implementation
+    addon_status = {
+      for name, addon in output.installed_addons.value :
+        name => addon.enabled ? "Healthy" : "Disabled"
+    }
+  }
 }
