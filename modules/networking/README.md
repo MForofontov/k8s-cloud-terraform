@@ -2,28 +2,20 @@
 
 This enterprise-grade Terraform module creates foundational networking infrastructure across AWS, Azure, and GCP with a consistent interface. Designed specifically for Kubernetes deployments, it implements cloud provider best practices while maintaining a uniform API for multi-cloud environments.
 
-## 🚀 Features
+## 🚀 Supported Features
 
-### Core Capabilities
-- **Unified Multi-Cloud API** - Deploy consistent networking topologies across AWS, Azure, and GCP
-- **Production-Ready VPC/VNet** - Secure, scalable network foundation with intelligent defaults
-- **Public/Private Subnet Architecture** - Proper isolation of workloads with controlled internet access
-- **Smart CIDR Management** - Automatic subnet calculation or explicit configuration
-- **Kubernetes-Optimized** - Network design aligned with Kubernetes best practices
-
-### Advanced Features
-- **IPv6 Support** - Dual-stack networking capability across providers
-- **Private Service Access** - VPC Endpoints (AWS), Service Endpoints (Azure), Private Service Connect (GCP)
-- **Enhanced Security** - Baseline security groups/firewall rules with principle of least privilege
-- **Flow Logging** - Network traffic analysis and troubleshooting capabilities
-- **High Availability Options** - Multi-AZ NAT gateways and redundant network paths
-
-### Enterprise Enhancements
-- **Consistent Tagging** - Uniform resource tagging strategy across clouds
-- **Comprehensive Outputs** - Rich output interface for module composition
-- **Network Security Posture** - Defense-in-depth approach with multiple security controls
-- **DDoS Protection** - Azure DDoS Protection Plan integration
-- **VPC Service Controls** - GCP enterprise security boundary enforcement
+| Feature | AWS | Azure | GCP | Description |
+|---------|-----|-------|-----|-------------|
+| **VPC/VNet** | ✅ | ✅ | ✅ | Core virtual network with custom CIDR blocks |
+| **Subnets** | ✅ | ✅ | ✅ | Public and private subnet architecture |
+| **NAT Gateway** | ✅ | ✅ | ✅ | Outbound internet access for private subnets |
+| **Internet Gateway** | ✅ | ✅ | ✅ | Inbound/outbound internet access for public subnets |
+| **Security Groups** | ✅ | ✅ | ✅ | Network traffic filtering with least-privilege rules |
+| **Flow Logs** | ✅ | ✅ | ✅ | Network traffic analysis and troubleshooting |
+| **Service Endpoints** | ✅ | ✅ | ✅ | Private access to cloud provider services |
+| **IPv6 Support** | ✅ | ✅ | ✅ | Dual-stack networking capabilities |
+| **DDoS Protection** | ❌ | ✅ | ❌ | Azure DDoS Protection Plan integration |
+| **VPC Service Controls** | ❌ | ❌ | ✅ | GCP enterprise security boundary enforcement |
 
 ## 📋 Usage Examples
 
