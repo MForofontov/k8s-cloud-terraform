@@ -1,116 +1,242 @@
-#-----------------------------------------------------------------------------
-# Cloud-Agnostic Networking Variables
-# 
-# This module creates networking infrastructure across AWS, Azure, and GCP
-# with a consistent interface. These variables control the network topology,
-# subnetting, and connectivity features for your infrastructure.
-#-----------------------------------------------------------------------------
+#------------------------------------------------------------------------------
+# Cloud-Agnostic Networking Module Variables
+#
+# This file defines input variables for the Networking module, supporting
+# consistent configuration across AWS, Azure, and GCP.
+#------------------------------------------------------------------------------
 
-#-----------------------------------------------------------------------------
-# REQUIRED PARAMETERS
-#-----------------------------------------------------------------------------
-
+#------------------------------------------------------------------------------
+# Provider Selection and General Configuration
+#------------------------------------------------------------------------------
 variable "cloud_provider" {
-  description = "The cloud provider to deploy to (aws, azure, gcp). This determines which cloud-specific resources will be created."
+  description = "Cloud provider to use (aws, azure, gcp)"
   type        = string
+  
   validation {
     condition     = contains(["aws", "azure", "gcp"], var.cloud_provider)
-    error_message = "Allowed values for cloud_provider are 'aws', 'azure', or 'gcp'."
+    error_message = "The cloud_provider value must be one of: aws, azure, gcp."
   }
 }
 
-#-----------------------------------------------------------------------------
-# OPTIONAL GENERAL PARAMETERS
-#-----------------------------------------------------------------------------
-
 variable "name_prefix" {
-  description = "Prefix to use for naming resources. This helps identify related resources across your infrastructure."
+  description = "Prefix for all resource names to ensure uniqueness and consistency"
   type        = string
-  default     = "k8s"
 }
 
+variable "environment" {
+  description = "Environment name (e.g., dev, staging, prod) for tagging and naming"
+  type        = string
+  default     = "dev"
+}
+
+variable "tags" {
+  description = "Map of tags to apply to all resources"
+  type        = map(string)
+  default     = {}
+}
+
+#------------------------------------------------------------------------------
+# Networking Configuration
+#------------------------------------------------------------------------------
 variable "vpc_name" {
-  description = "Name of the VPC/VNet. If not provided, {name_prefix}-vpc will be used. This is the main network container in each cloud provider."
+  description = "Name for the VPC/VNet. If not provided, will be auto-generated from name_prefix"
   type        = string
   default     = null
 }
 
 variable "vpc_cidr" {
-  description = "CIDR block for the VPC/VNet (e.g., '10.0.0.0/16'). If not specified, defaults to 10.0.0.0/16. This defines the overall IP address range for your network."
+  description = "CIDR block for the VPC/VNet. Default is 10.0.0.0/16"
   type        = string
   default     = null
 }
 
 variable "subnet_cidrs" {
-  description = "List of CIDR blocks for subnets (e.g., ['10.0.0.0/24', '10.0.1.0/24']). If not provided, subnets will be automatically created with calculated CIDRs based on the VPC CIDR block."
+  description = "List of CIDR blocks for subnets. If not provided, will be auto-generated from vpc_cidr"
   type        = list(string)
   default     = null
 }
 
 variable "subnet_names" {
-  description = "List of names for subnets. Should match the length of subnet_cidrs if provided. If not specified, names will be auto-generated as '{name_prefix}-subnet-{index}'."
+  description = "List of subnet names. If not provided, will be auto-generated from name_prefix"
   type        = list(string)
   default     = null
 }
 
-variable "availability_zones" {
-  description = "List of availability zones to use for AWS subnets. For high availability, specify at least two zones (e.g., ['us-east-1a', 'us-east-1b'])."
-  type        = list(string)
-  default     = []
-}
-
 variable "public_subnet_indices" {
-  description = "List of indices in the subnet_cidrs list that should be public (have internet access). By default, the first two subnets will be public. These subnets will have routes to the internet gateway."
+  description = "List of subnet indices that should be treated as public (0-based indexing)"
   type        = list(number)
   default     = [0, 1]
 }
 
 variable "private_subnet_indices" {
-  description = "List of indices in the subnet_cidrs list that should be private (no direct internet access). By default, the third and fourth subnets will be private. These subnets will route through the NAT gateway if enabled."
+  description = "List of subnet indices that should be treated as private (0-based indexing)"
   type        = list(number)
   default     = [2, 3]
 }
 
 variable "create_internet_gateway" {
-  description = "Whether to create an Internet Gateway (AWS) or equivalent in other clouds to enable outbound/inbound internet access for public subnets."
+  description = "Whether to create an internet gateway for public subnets"
   type        = bool
   default     = true
 }
 
 variable "create_nat_gateway" {
-  description = "Whether to create a NAT Gateway for private subnets to access internet. This allows instances in private subnets to initiate outbound connections while remaining inaccessible from the internet."
+  description = "Whether to create NAT gateway(s) for private subnets"
   type        = bool
   default     = true
 }
 
-variable "tags" {
-  description = "Tags to apply to all resources. Use this to categorize resources by environment, cost center, owner, etc. Example: {Environment = 'Production', Owner = 'DevOps'}"
-  type        = map(string)
-  default     = {}
+variable "single_nat_gateway" {
+  description = "Whether to use a single NAT gateway for all private subnets (true) or one per availability zone (false)"
+  type        = bool
+  default     = true
 }
 
-#-----------------------------------------------------------------------------
-# AZURE-SPECIFIC PARAMETERS
-#-----------------------------------------------------------------------------
+variable "enable_ipv6" {
+  description = "Whether to enable IPv6 support"
+  type        = bool
+  default     = false
+}
 
+variable "enable_flow_logs" {
+  description = "Whether to enable VPC flow logs for network traffic analysis"
+  type        = bool
+  default     = false
+}
+
+variable "flow_logs_retention_days" {
+  description = "Number of days to retain flow logs"
+  type        = number
+  default     = 30
+}
+
+variable "enable_service_endpoints" {
+  description = "Whether to enable service endpoints/PrivateLink/Private Service Access"
+  type        = bool
+  default     = false
+}
+
+#------------------------------------------------------------------------------
+# AWS Specific Configuration
+#------------------------------------------------------------------------------
+variable "aws_region" {
+  description = "AWS region where resources will be created"
+  type        = string
+  default     = "us-west-2"
+}
+
+variable "availability_zones" {
+  description = "List of availability zones to use for resources. Should match the number of subnets"
+  type        = list(string)
+  default     = []
+}
+
+#------------------------------------------------------------------------------
+# Azure Specific Configuration
+#------------------------------------------------------------------------------
 variable "azure_location" {
-  description = "Azure region to deploy resources to (e.g., 'eastus', 'westeurope'). Only used when cloud_provider is 'azure'."
+  description = "Azure location where resources will be created"
   type        = string
   default     = "eastus"
 }
 
-#-----------------------------------------------------------------------------
-# GCP-SPECIFIC PARAMETERS
-#-----------------------------------------------------------------------------
+variable "azure_enable_zones" {
+  description = "Whether to enable availability zones for Azure resources that support it"
+  type        = bool
+  default     = true
+}
 
+variable "azure_enable_ddos_protection" {
+  description = "Whether to enable DDoS protection for Azure virtual network"
+  type        = bool
+  default     = false
+}
+
+variable "azure_service_endpoints" {
+  description = "List of Azure service endpoints to enable on private subnets"
+  type        = list(string)
+  default     = ["Microsoft.Storage", "Microsoft.KeyVault", "Microsoft.ContainerRegistry"]
+}
+
+variable "azure_subnet_delegations" {
+  description = "Map of subnet delegations for Azure services"
+  type        = map(object({
+    service_name = string
+    actions      = list(string)
+  }))
+  default     = {}
+}
+
+variable "azure_log_analytics_workspace_id" {
+  description = "Azure Log Analytics workspace ID for flow logs analysis"
+  type        = string
+  default     = null
+}
+
+variable "azure_log_analytics_workspace_resource_id" {
+  description = "Azure Log Analytics workspace resource ID for flow logs analysis"
+  type        = string
+  default     = null
+}
+
+#------------------------------------------------------------------------------
+# GCP Specific Configuration
+#------------------------------------------------------------------------------
 variable "gcp_project_id" {
-  description = "GCP project ID where resources will be created. Required when cloud_provider is 'gcp'."
+  description = "GCP project ID where resources will be created"
+  type        = string
+  default     = null
+}
+
+variable "gcp_project_number" {
+  description = "GCP project number for VPC Service Controls"
   type        = string
   default     = null
 }
 
 variable "gcp_region" {
-  description = "GCP region to deploy resources to (e.g., 'us-central1', 'europe-west1'). Only used when cloud_provider is 'gcp'."
+  description = "GCP region where resources will be created"
   type        = string
   default     = "us-central1"
+}
+
+variable "gcp_routing_mode" {
+  description = "GCP network routing mode (REGIONAL or GLOBAL)"
+  type        = string
+  default     = "REGIONAL"
+  
+  validation {
+    condition     = contains(["REGIONAL", "GLOBAL"], var.gcp_routing_mode)
+    error_message = "The gcp_routing_mode value must be one of: REGIONAL, GLOBAL."
+  }
+}
+
+variable "gcp_enable_vpc_service_controls" {
+  description = "Whether to enable VPC Service Controls for GCP network (Enterprise feature)"
+  type        = bool
+  default     = false
+}
+
+variable "gcp_access_policy_id" {
+  description = "GCP Access Context Manager policy ID for VPC Service Controls"
+  type        = string
+  default     = null
+}
+
+variable "gcp_restricted_services" {
+  description = "List of GCP services to restrict in the VPC Service Controls perimeter"
+  type        = list(string)
+  default     = ["storage.googleapis.com", "bigquery.googleapis.com"]
+}
+
+variable "gcp_allowed_services" {
+  description = "List of GCP services allowed in the VPC Service Controls perimeter"
+  type        = list(string)
+  default     = ["compute.googleapis.com", "container.googleapis.com"]
+}
+
+variable "gcp_allowed_identities" {
+  description = "List of identities allowed to access restricted services"
+  type        = list(string)
+  default     = []
 }
