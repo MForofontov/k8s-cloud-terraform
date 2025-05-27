@@ -16,16 +16,16 @@ This Terraform module creates enterprise-grade networking infrastructure across 
 
 | Feature | AWS | Azure | GCP | Description |
 |---------|-----|-------|-----|-------------|
-| VPC/VNet | ✅ | ✅ | ✅ | Core virtual network with custom CIDR blocks |
-| Subnets | ✅ | ✅ | ✅ | Public and private subnet architecture |
-| NAT Gateway | ✅ | ✅ | ✅ | Outbound internet access for private subnets |
-| Internet Gateway | ✅ | ✅ | ✅ | Inbound/outbound internet access for public subnets |
-| Security Groups | ✅ | ✅ | ✅ | Network traffic filtering with least-privilege rules |
-| Flow Logs | ✅ | ✅ | ✅ | Network traffic analysis and troubleshooting |
-| Service Endpoints | ✅ | ✅ | ✅ | Private access to cloud provider services |
-| IPv6 Support | ✅ | ✅ | ✅ | Dual-stack networking capabilities |
-| DDoS Protection | ❌ | ✅ | ❌ | Azure DDoS Protection Plan integration |
-| VPC Service Controls | ❌ | ❌ | ✅ | GCP enterprise security boundary enforcement |
+| **VPC/VNet** | ✅ | ✅ | ✅ | Core virtual network with custom CIDR blocks |
+| **Subnets** | ✅ | ✅ | ✅ | Public and private subnet architecture |
+| **NAT Gateway** | ✅ | ✅ | ✅ | Outbound internet access for private subnets |
+| **Internet Gateway** | ✅ | ✅ | ✅ | Inbound/outbound internet access for public subnets |
+| **Security Groups** | ✅ | ✅ | ✅ | Network traffic filtering with least-privilege rules |
+| **Flow Log** | ✅ | ✅ | ✅ | Network traffic analysis and troubleshooting |
+| **Service Endpoints** | ✅ | ✅ | ✅ | Private access to cloud provider services |
+| **IPv6 Support** | ✅ | ✅ | ✅ | Dual-stack networking capabilities |
+| **DDoS Protection** | ❌ | ✅ | ❌ | Azure DDoS Protection Plan integration |
+| **VPC Service Controls** | ❌ | ❌ | ✅ | GCP enterprise security boundary enforcement |
 
 ## Usage
 
