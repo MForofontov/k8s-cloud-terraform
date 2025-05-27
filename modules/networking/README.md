@@ -1,33 +1,33 @@
 # Enterprise Multi-Cloud Networking Module
 
-This enterprise-grade Terraform module creates foundational networking infrastructure across AWS, Azure, and GCP with a consistent interface. Designed specifically for Kubernetes deployments, it implements cloud provider best practices while maintaining a uniform API for multi-cloud environments.
+This Terraform module creates enterprise-grade networking infrastructure across AWS, Azure, and GCP with a consistent interface. It provides the foundation for Kubernetes deployments while maintaining a uniform API for multi-cloud environments.
 
-## 🚀 Features
+## Features
 
-### Core Capabilities
-- **Unified Multi-Cloud API** - Deploy consistent networking topologies across AWS, Azure, and GCP
-- **Production-Ready VPC/VNet** - Secure, scalable network foundation with intelligent defaults
-- **Public/Private Subnet Architecture** - Proper isolation of workloads with controlled internet access
-- **Smart CIDR Management** - Automatic subnet calculation or explicit configuration
-- **Kubernetes-Optimized** - Network design aligned with Kubernetes best practices
+- Cross-Cloud Compatible: Works with AWS, Azure, and GCP through a unified interface
+- Kubernetes-Optimized: Network architecture designed for Kubernetes workloads
+- Production-Ready: Secure, scalable network foundation with intelligent defaults
+- Public/Private Subnets: Proper isolation of workloads with controlled internet access
+- Smart CIDR Management: Automatic subnet calculation or explicit configuration
+- Advanced Security: Defense-in-depth approach with multiple security controls
+- High Availability: Support for multi-AZ deployments and redundant components
 
-### Advanced Features
-- **IPv6 Support** - Dual-stack networking capability across providers
-- **Private Service Access** - VPC Endpoints (AWS), Service Endpoints (Azure), Private Service Connect (GCP)
-- **Enhanced Security** - Baseline security groups/firewall rules with principle of least privilege
-- **Flow Logging** - Network traffic analysis and troubleshooting capabilities
-- **High Availability Options** - Multi-AZ NAT gateways and redundant network paths
+## Supported Features
 
-### Enterprise Enhancements
-- **Consistent Tagging** - Uniform resource tagging strategy across clouds
-- **Comprehensive Outputs** - Rich output interface for module composition
-- **Network Security Posture** - Defense-in-depth approach with multiple security controls
-- **DDoS Protection** - Azure DDoS Protection Plan integration
-- **VPC Service Controls** - GCP enterprise security boundary enforcement
+| Feature | AWS | Azure | GCP | Description |
+|---------|-----|-------|-----|-------------|
+| **VPC/VNet** | ✅ | ✅ | ✅ | Core virtual network with custom CIDR blocks |
+| **Subnets** | ✅ | ✅ | ✅ | Public and private subnet architecture |
+| **NAT Gateway** | ✅ | ✅ | ✅ | Outbound internet access for private subnets |
+| **Internet Gateway** | ✅ | ✅ | ✅ | Inbound/outbound internet access for public subnets |
+| **Security Groups** | ✅ | ✅ | ✅ | Network traffic filtering with least-privilege rules |
+| **Flow Log** | ✅ | ✅ | ✅ | Network traffic analysis and troubleshooting |
+| **Service Endpoints** | ✅ | ✅ | ✅ | Private access to cloud provider services |
+| **IPv6 Support** | ✅ | ✅ | ✅ | Dual-stack networking capabilities |
+| **DDoS Protection** | ❌ | ✅ | ❌ | Azure DDoS Protection Plan integration |
+| **VPC Service Controls** | ❌ | ❌ | ✅ | GCP enterprise security boundary enforcement |
 
-## 📋 Usage Examples
-
-### Basic AWS Deployment
+## Usage
 
 ```hcl
 module "network" {
@@ -53,7 +53,70 @@ module "network" {
 }
 ```
 
-### Azure Advanced Configuration
+## Requirements
+
+| Name | Version |
+|------|---------|
+| terraform | >= 1.0.0 |
+| aws | ~> 5.50.0 |
+| azurerm | ~> 3.95.0 |
+| google | ~> 5.20.0 |
+
+## Input Variables
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| cloud_provider | Cloud provider to use (aws, azure, gcp) | string | n/a | yes |
+| name_prefix | Prefix for all resource names | string | n/a | yes |
+| vpc_cidr | CIDR block for the VPC/VNet | string | "10.0.0.0/16" | no |
+| enable_flow_logs | Enable network flow logs | bool | false | no |
+| flow_logs_retention_days | Days to retain flow logs | number | 30 | no |
+| enable_service_endpoints | Enable private service endpoints | bool | false | no |
+| enable_ipv6 | Enable IPv6 support | bool | false | no |
+| single_nat_gateway | Use single NAT instead of per-AZ NATs | bool | true | no |
+| tags | Tags to apply to all resources | map(string) | {} | no |
+
+## Output Variables
+
+| Name | Description |
+|------|-------------|
+| vpc_id | ID of the created VPC/VNet |
+| vpc_cidr | CIDR block of the VPC/VNet |
+| subnet_ids | List of all subnet IDs |
+| public_subnet_ids | List of public subnet IDs |
+| private_subnet_ids | List of private subnet IDs |
+| nat_gateway_ids | List of NAT Gateway IDs |
+| security_group_id | ID of the main security group |
+
+## Example
+
+### AWS Example
+
+```hcl
+module "network" {
+  source         = "github.com/your-organization/k8s-cloud-terraform//modules/networking"
+  cloud_provider = "aws"
+  name_prefix    = "prod"
+  vpc_cidr       = "10.0.0.0/16"
+  
+  # High-availability configuration
+  availability_zones = ["us-east-1a", "us-east-1b", "us-east-1c", "us-east-1d"]
+  single_nat_gateway = false  # Create a NAT gateway in each AZ for high availability
+  
+  # Enable security and compliance features
+  enable_flow_logs        = true
+  enable_service_endpoints = true
+  
+  tags = {
+    Environment  = "Production"
+    Terraform    = "true"
+    CostCenter   = "Platform"
+    BusinessUnit = "Engineering"
+  }
+}
+```
+
+### Azure Example
 
 ```hcl
 module "network" {
@@ -98,28 +161,15 @@ module "network" {
     "prod-private-data"
   ]
   
-  # Configure which subnets are public vs private
-  public_subnet_indices = [0, 1]
-  private_subnet_indices = [2, 3, 4]
-  
-  # Configure subnet delegations for Azure PaaS services
-  azure_subnet_delegations = {
-    "aks-delegation" = {
-      service_name = "Microsoft.ContainerService/managedClusters"
-      actions      = ["Microsoft.Network/virtualNetworks/subnets/join/action"]
-    }
-  }
-  
   tags = {
     Environment  = "Production"
     Terraform    = "true"
     CostCenter   = "Platform"
-    Department   = "Infrastructure"
   }
 }
 ```
 
-### GCP Enterprise Configuration
+### GCP Example
 
 ```hcl
 module "network" {
@@ -159,39 +209,6 @@ module "network" {
   }
 }
 ```
-
-## Requirements
-
-| Name | Version |
-|------|---------|
-| terraform | >= 1.0.0 |
-| aws | ~> 5.50.0 |
-| azurerm | ~> 3.95.0 |
-| google | ~> 5.20.0 |
-
-## Inputs
-
-| Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
-| cloud_provider | Cloud provider to use (aws, azure, gcp) | string | n/a | yes |
-| name_prefix | Prefix for all resource names | string | n/a | yes |
-| vpc_cidr | CIDR block for the VPC/VNet | string | "10.0.0.0/16" | no |
-| enable_flow_logs | Enable network flow logs | bool | false | no |
-| flow_logs_retention_days | Days to retain flow logs | number | 30 | no |
-| enable_service_endpoints | Enable private service endpoints | bool | false | no |
-| enable_ipv6 | Enable IPv6 support | bool | false | no |
-| single_nat_gateway | Use single NAT instead of per-AZ NATs | bool | true | no |
-| tags | Tags to apply to all resources | map(string) | {} | no |
-
-## Outputs
-
-| Name | Description |
-|------|-------------|
-| vpc_id | ID of the created VPC/VNet |
-| vpc_cidr | CIDR block of the VPC/VNet |
-| subnet_ids | List of all subnet IDs |
-| public_subnet_ids | List of public subnet IDs |
-| private_subnet_ids | List of private subnet IDs |
 
 ## License
 
