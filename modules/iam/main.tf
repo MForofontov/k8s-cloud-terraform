@@ -19,22 +19,31 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = ">= 4.0.0, < 5.0.0"
+      version = "~> 5.50.0"
       configuration_aliases = [aws.alternate]
     }
     azuread = {
       source  = "hashicorp/azuread"
-      version = ">= 2.30.0"
+      version = "~> 2.45.0"
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 3.0.0"
+      version = "~> 3.90.0"
     }
     google = {
       source  = "hashicorp/google"
-      version = ">= 4.40.0"
+      version = "~> 5.10.0"
+    }
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 2.23.0"
+    }
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = "~> 1.14.0"
     }
   }
+  required_version = ">= 1.5.0"
 }
 
 #==============================================================================
@@ -239,9 +248,82 @@ resource "google_service_account_iam_binding" "k8s_sa_workload_identity" {
 }
 
 #==============================================================================
-# Cross-Cloud Service Account Creation
-# Kubernetes manifests for service accounts (optional, requires kubectl provider)
+# Cross-Cloud Kubernetes Service Account Creation
+# Creates the Kubernetes service account in the cluster
 #==============================================================================
-# If kubernetes provider is configured and var.create_k8s_service_account is true,
-# this would create the Kubernetes service account directly.
-# Not implemented in this version as it would require the kubernetes provider.
+resource "kubernetes_service_account" "k8s_sa" {
+  count = var.create_k8s_service_account ? 1 : 0
+  
+  metadata {
+    name      = var.k8s_service_account_name
+    namespace = var.k8s_namespace
+    
+    annotations = merge(
+      local.use_aws ? {
+        "eks.amazonaws.com/role-arn" = aws_iam_role.k8s_service_account[0].arn
+      } : {},
+      local.use_gcp && var.gcp_use_workload_identity ? {
+        "iam.gke.io/gcp-service-account" = google_service_account.k8s_sa[0].email
+      } : {},
+      var.k8s_service_account_annotations
+    )
+    
+    labels = merge(
+      {
+        "app.kubernetes.io/managed-by" = "terraform"
+      },
+      var.k8s_service_account_labels
+    )
+  }
+  
+  automount_service_account_token = true
+  
+  depends_on = [
+    aws_iam_role.k8s_service_account,
+    google_service_account.k8s_sa,
+    google_service_account_iam_binding.k8s_sa_workload_identity
+  ]
+}
+
+#==============================================================================
+# Azure Workload Identity Configuration
+# Configure Azure Workload Identity for Kubernetes (AKS)
+#==============================================================================
+resource "kubectl_manifest" "azure_federated_identity" {
+  count = local.use_azure && var.azure_use_workload_identity ? 1 : 0
+  
+  yaml_body = <<YAML
+apiVersion: azure.microsoft.com/v1alpha1
+kind: AzureIdentity
+metadata:
+  name: ${var.k8s_service_account_name}-azure-identity
+  namespace: ${var.k8s_namespace}
+spec:
+  type: 0
+  resourceID: ${azuread_service_principal.k8s_sp[0].id}
+  clientID: ${azuread_application.k8s_app[0].application_id}
+YAML
+
+  depends_on = [
+    kubernetes_service_account.k8s_sa
+  ]
+}
+
+resource "kubectl_manifest" "azure_identity_binding" {
+  count = local.use_azure && var.azure_use_workload_identity ? 1 : 0
+  
+  yaml_body = <<YAML
+apiVersion: azure.microsoft.com/v1alpha1
+kind: AzureIdentityBinding
+metadata:
+  name: ${var.k8s_service_account_name}-azure-identity-binding
+  namespace: ${var.k8s_namespace}
+spec:
+  azureIdentity: ${var.k8s_service_account_name}-azure-identity
+  selector: ${var.k8s_service_account_name}-azure-identity
+YAML
+
+  depends_on = [
+    kubectl_manifest.azure_federated_identity
+  ]
+}
