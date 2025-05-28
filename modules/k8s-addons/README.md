@@ -86,17 +86,26 @@ module "kubernetes_addons" {
 | cluster_endpoint | Endpoint of the Kubernetes cluster | string | n/a | yes |
 | cluster_type | Type of Kubernetes cluster (eks, aks, gke) | string | n/a | yes |
 | oidc_provider_arn | ARN of the OIDC provider (for EKS) | string | null | no |
-| enable_metrics_server | Enable Metrics Server | bool | true | no |
-| enable_cluster_autoscaler | Enable Cluster Autoscaler | bool | true | no |
-| enable_external_dns | Enable External DNS | bool | false | no |
-| enable_cert_manager | Enable Cert Manager | bool | false | no |
-| enable_ingress_nginx | Enable NGINX Ingress Controller | bool | false | no |
-| enable_prometheus | Enable Prometheus Stack | bool | false | no |
-| enable_loki | Enable Loki for log aggregation | bool | false | no |
-| enable_velero | Enable Velero for backup and restore | bool | false | no |
+| kubernetes_config_path | Path to the Kubernetes config file | string | null | no |
+| kubernetes_config_context | Kubernetes config context to use | string | null | no |
+| cluster_context | Cluster context information for smart defaults | object({cloud_provider = string, cluster_size = string, region = string, environment = string, is_production = bool}) | {cloud_provider = "aws", cluster_size = "medium", region = "us-west-2", environment = "dev", is_production = false} | no |
+| storage_class | Default storage class to use for persistent volumes | string | null | no |
+| tags | Tags to apply to all resources | map(string) | {} | no |
+
+### Feature Toggles
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| enable_metrics_server | Enable Metrics Server | bool | false | no |
+| enable_cluster_autoscaler | Enable Cluster Autoscaler | bool | false | no |
 | enable_karpenter | Enable Karpenter autoscaler | bool | false | no |
+| enable_nginx_ingress | Enable NGINX Ingress Controller | bool | false | no |
+| enable_cert_manager | Enable Cert Manager | bool | false | no |
+| enable_external_dns | Enable External DNS | bool | false | no |
+| enable_prometheus_stack | Enable Prometheus Stack | bool | false | no |
 | enable_fluent_bit | Enable Fluent Bit for log forwarding | bool | false | no |
 | enable_argocd | Enable ArgoCD GitOps controller | bool | false | no |
+| enable_velero | Enable Velero for backup and restore | bool | false | no |
 | enable_sealed_secrets | Enable Sealed Secrets for secret management | bool | false | no |
 | enable_istio | Enable Istio service mesh | bool | false | no |
 | enable_kyverno | Enable Kyverno policy engine | bool | false | no |
@@ -106,106 +115,225 @@ module "kubernetes_addons" {
 | enable_aws_load_balancer_controller | Enable AWS Load Balancer Controller | bool | false | no |
 | enable_app_gateway_ingress_controller | Enable Azure Application Gateway Ingress Controller | bool | false | no |
 | enable_gcp_ingress_controller | Enable GCP Ingress Controller | bool | false | no |
-| tags | Tags to apply to all resources | map(string) | {} | no |
 
-### Addon-Specific Configuration
+### Metrics Server Configuration
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| external_dns | External DNS configuration | map(any) | {} | no |
-| cert_manager | Cert Manager configuration | map(any) | {} | no |
-| ingress_nginx | NGINX Ingress configuration | map(any) | {} | no |
-| prometheus | Prometheus Stack configuration | map(any) | {} | no |
-| loki | Loki configuration | map(any) | {} | no |
-| velero | Velero configuration | map(any) | {} | no |
-| karpenter | Karpenter configuration | map(any) | {} | no |
-| fluent_bit | Fluent Bit configuration | map(any) | {} | no |
-| argocd | ArgoCD configuration | map(any) | {} | no |
-| sealed_secrets | Sealed Secrets configuration | map(any) | {} | no |
-| istio | Istio configuration | map(any) | {} | no |
-| kyverno | Kyverno configuration | map(any) | {} | no |
-| crossplane | Crossplane configuration | map(any) | {} | no |
-| calico | Calico configuration | map(any) | {} | no |
-| csi_snapshotter | CSI Snapshotter configuration | map(any) | {} | no |
-| metrics_server | Metrics Server configuration | map(any) | {} | no |
-| cluster_autoscaler | Cluster Autoscaler configuration | map(any) | {} | no |
-| aws_load_balancer_controller | AWS Load Balancer Controller configuration | map(any) | {} | no |
-| app_gateway_ingress_controller | Azure Application Gateway Ingress Controller configuration | map(any) | {} | no |
-| gcp_ingress_controller | GCP Ingress Controller configuration | map(any) | {} | no |
+| metrics_server.name | Name of the Helm release | string | "metrics-server" | no |
+| metrics_server.chart | Name of the Helm chart | string | "metrics-server" | no |
+| metrics_server.repository | Helm chart repository URL | string | "https://kubernetes-sigs.github.io/metrics-server/" | no |
+| metrics_server.chart_version | Version of the Helm chart | string | null | no |
+| metrics_server.namespace | Kubernetes namespace for deployment | string | "kube-system" | no |
+| metrics_server.create_namespace | Whether to create the namespace | bool | false | no |
+| metrics_server.values | Path to values file | string | "" | no |
+| metrics_server.set_values | Map of values for Helm chart | map(any) | {} | no |
+| metrics_server.set | Map of individual values for Helm chart | map(string) | {} | no |
+
+### Cluster Autoscaler Configuration
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| cluster_autoscaler.name | Name of the Helm release | string | "cluster-autoscaler" | no |
+| cluster_autoscaler.chart | Name of the Helm chart | string | "cluster-autoscaler" | no |
+| cluster_autoscaler.repository | Helm chart repository URL | string | "https://kubernetes.github.io/autoscaler" | no |
+| cluster_autoscaler.chart_version | Version of the Helm chart | string | null | no |
+| cluster_autoscaler.namespace | Kubernetes namespace for deployment | string | "kube-system" | no |
+| cluster_autoscaler.create_namespace | Whether to create the namespace | bool | false | no |
+| cluster_autoscaler.aws_config.auto_discovery | Use AWS auto-discovery | bool | true | no |
+| cluster_autoscaler.aws_config.cluster_name | EKS cluster name | string | null | no |
+| cluster_autoscaler.aws_config.region | AWS region | string | null | no |
+| cluster_autoscaler.aws_config.role_arn | IAM role ARN for Cluster Autoscaler | string | null | no |
+| cluster_autoscaler.aws_config.expander | Node group expansion strategy | string | "least-waste" | no |
+| cluster_autoscaler.azure_config.node_resource_group | Azure node resource group | string | null | no |
+| cluster_autoscaler.gcp_config.project_id | GCP project ID | string | null | no |
+| cluster_autoscaler.gcp_config.location | GCP location | string | null | no |
+| cluster_autoscaler.gcp_config.cluster_name | GKE cluster name | string | null | no |
+| cluster_autoscaler.gcp_config.node_pool_patterns | Node pool name patterns to match | list(string) | [".*"] | no |
+
+### Karpenter Configuration
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| karpenter.name | Name of the Helm release | string | "karpenter" | no |
+| karpenter.chart | Name of the Helm chart | string | "karpenter" | no |
+| karpenter.repository | Helm chart repository URL | string | "https://charts.karpenter.sh" | no |
+| karpenter.chart_version | Version of the Helm chart | string | null | no |
+| karpenter.namespace | Kubernetes namespace for deployment | string | "karpenter" | no |
+| karpenter.create_namespace | Whether to create the namespace | bool | true | no |
+| karpenter.aws_config.cluster_name | EKS cluster name | string | null | no |
+| karpenter.aws_config.cluster_endpoint | EKS cluster endpoint | string | null | no |
+| karpenter.aws_config.instance_profile | AWS instance profile name | string | null | no |
+| karpenter.provisioner.create_default | Create a default provisioner | bool | true | no |
+| karpenter.provisioner.default_name | Name for the default provisioner | string | "default" | no |
+
+### NGINX Ingress Controller Configuration
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| nginx_ingress.name | Name of the Helm release | string | "nginx-ingress" | no |
+| nginx_ingress.chart | Name of the Helm chart | string | "ingress-nginx" | no |
+| nginx_ingress.repository | Helm chart repository URL | string | "https://kubernetes.github.io/ingress-nginx" | no |
+| nginx_ingress.chart_version | Version of the Helm chart | string | null | no |
+| nginx_ingress.namespace | Kubernetes namespace for deployment | string | "ingress-nginx" | no |
+| nginx_ingress.create_namespace | Whether to create the namespace | bool | true | no |
+| nginx_ingress.controller.replicas | Number of controller replicas | number | null | no |
+| nginx_ingress.controller.service_type | Type of Kubernetes service | string | "LoadBalancer" | no |
+| nginx_ingress.controller.use_proxy_protocol | Whether to use proxy protocol | bool | false | no |
+| nginx_ingress.controller.use_host_port | Whether to use host ports | bool | false | no |
+| nginx_ingress.controller.publish_service | Whether to publish service | bool | true | no |
+| nginx_ingress.controller.internal | Whether to create an internal load balancer | bool | false | no |
+
+### Cert Manager Configuration
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| cert_manager.name | Name of the Helm release | string | "cert-manager" | no |
+| cert_manager.chart | Name of the Helm chart | string | "cert-manager" | no |
+| cert_manager.repository | Helm chart repository URL | string | "https://charts.jetstack.io" | no |
+| cert_manager.chart_version | Version of the Helm chart | string | null | no |
+| cert_manager.namespace | Kubernetes namespace for deployment | string | "cert-manager" | no |
+| cert_manager.create_namespace | Whether to create the namespace | bool | true | no |
+| cert_manager.create_clusterissuer | Whether to create a ClusterIssuer | bool | false | no |
+| cert_manager.issuer_type | Type of issuer to create | string | "letsencrypt-prod" | no |
+| cert_manager.email_address | Email address for Let's Encrypt | string | null | no |
+
+### External DNS Configuration
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| external_dns.name | Name of the Helm release | string | "external-dns" | no |
+| external_dns.chart | Name of the Helm chart | string | "external-dns" | no |
+| external_dns.repository | Helm chart repository URL | string | "https://kubernetes-sigs.github.io/external-dns/" | no |
+| external_dns.chart_version | Version of the Helm chart | string | null | no |
+| external_dns.namespace | Kubernetes namespace for deployment | string | "external-dns" | no |
+| external_dns.create_namespace | Whether to create the namespace | bool | true | no |
+| external_dns.provider_config.provider | DNS provider | string | null | no |
+| external_dns.provider_config.domain_filters | List of domain filters | list(string) | [] | no |
+| external_dns.provider_config.exclude_domains | List of domains to exclude | list(string) | [] | no |
+| external_dns.provider_config.txt_owner_id | TXT record owner ID | string | null | no |
+| external_dns.provider_config.txt_prefix | TXT record prefix | string | null | no |
+| external_dns.provider_config.registry | Registry method | string | "txt" | no |
+| external_dns.provider_config.policy | DNS record reconciliation policy | string | "upsert-only" | no |
+
+### Prometheus Stack Configuration
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| prometheus_stack.name | Name of the Helm release | string | "prometheus" | no |
+| prometheus_stack.chart | Name of the Helm chart | string | "kube-prometheus-stack" | no |
+| prometheus_stack.repository | Helm chart repository URL | string | "https://prometheus-community.github.io/helm-charts" | no |
+| prometheus_stack.chart_version | Version of the Helm chart | string | null | no |
+| prometheus_stack.namespace | Kubernetes namespace for deployment | string | "monitoring" | no |
+| prometheus_stack.create_namespace | Whether to create the namespace | bool | true | no |
+| prometheus_stack.prometheus.retention | Data retention period | string | "10d" | no |
+| prometheus_stack.prometheus.scrape_interval | Scrape interval | string | "30s" | no |
+| prometheus_stack.prometheus.evaluation_interval | Evaluation interval | string | "30s" | no |
+| prometheus_stack.prometheus.enable_remote_write | Enable remote write | bool | false | no |
+| prometheus_stack.prometheus.remote_write_urls | Remote write URLs | list(string) | [] | no |
+| prometheus_stack.prometheus.storage.size | Storage size | string | "50Gi" | no |
+| prometheus_stack.prometheus.storage.storage_class | Storage class | string | null | no |
+| prometheus_stack.alertmanager.enabled | Enable Alertmanager | bool | true | no |
+| prometheus_stack.alertmanager.replicas | Alertmanager replicas | number | null | no |
+| prometheus_stack.alertmanager.retention | Alertmanager retention | string | "120h" | no |
+| prometheus_stack.grafana.enabled | Enable Grafana | bool | true | no |
+| prometheus_stack.grafana.admin_password | Grafana admin password | string | "prom-operator" | no |
+| prometheus_stack.grafana.admin_user | Grafana admin username | string | "admin" | no |
+
+### AWS Load Balancer Controller Configuration
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| aws_load_balancer_controller.name | Name of the Helm release | string | "aws-load-balancer-controller" | no |
+| aws_load_balancer_controller.chart | Name of the Helm chart | string | "aws-load-balancer-controller" | no |
+| aws_load_balancer_controller.repository | Helm chart repository URL | string | "https://aws.github.io/eks-charts" | no |
+| aws_load_balancer_controller.chart_version | Version of the Helm chart | string | null | no |
+| aws_load_balancer_controller.namespace | Kubernetes namespace for deployment | string | "kube-system" | no |
+| aws_load_balancer_controller.create_namespace | Whether to create the namespace | bool | false | no |
+| aws_load_balancer_controller.aws_config.cluster_name | EKS cluster name | string | null | no |
+| aws_load_balancer_controller.aws_config.region | AWS region | string | null | no |
+| aws_load_balancer_controller.aws_config.vpc_id | VPC ID | string | null | no |
+| aws_load_balancer_controller.controller_config.enable_shield | Enable AWS Shield | bool | false | no |
+| aws_load_balancer_controller.controller_config.enable_waf | Enable AWS WAF | bool | false | no |
+| aws_load_balancer_controller.controller_config.ingress_class | Ingress class name | string | "alb" | no |
 
 ## Output Variables
+
+### Common Outputs
+
+| Name | Description | Type |
+|------|-------------|------|
+| installed_addons | Map of all installed addons with their status | map(map(string)) |
+| installed_addon_names | List of enabled addon names | list(string) |
+| addons_health | Consolidated health status of all installed addons | object({all_healthy = bool, addon_status = map(string)}) |
+
+### Metrics Server Outputs
 
 | Name | Description | Type |
 |------|-------------|------|
 | metrics_server_enabled | Whether Metrics Server is enabled | bool |
 | metrics_server_namespace | Namespace where Metrics Server is deployed | string |
 | metrics_server_version | Version of Metrics Server deployed | string |
+
+### Cluster Autoscaler Outputs
+
+| Name | Description | Type |
+|------|-------------|------|
 | cluster_autoscaler_enabled | Whether Cluster Autoscaler is enabled | bool |
 | cluster_autoscaler_namespace | Namespace where Cluster Autoscaler is deployed | string |
 | cluster_autoscaler_version | Version of Cluster Autoscaler deployed | string |
-| external_dns_enabled | Whether External DNS is enabled | bool |
-| external_dns_namespace | Namespace where External DNS is deployed | string |
-| external_dns_version | Version of External DNS deployed | string |
+
+### Karpenter Outputs
+
+| Name | Description | Type |
+|------|-------------|------|
+| karpenter_enabled | Whether Karpenter is enabled | bool |
+| karpenter_namespace | Namespace where Karpenter is deployed | string |
+| karpenter_version | Version of Karpenter deployed | string |
+
+## NGINX Ingress Outputs
+
+| Name | Description | Type |
+|------|-------------|------|
+| nginx_ingress_enabled | Whether NGINX Ingress is enabled | bool |
+| nginx_ingress_namespace | Namespace where NGINX Ingress is deployed | string |
+| nginx_ingress_version | Version of NGINX Ingress deployed | string |
+| ingress_class_name | Name of the default ingress class | string |
+
+## Cert Manager Outputs
+
+| Name | Description | Type |
+|------|-------------|------|
 | cert_manager_enabled | Whether Cert Manager is enabled | bool |
 | cert_manager_namespace | Namespace where Cert Manager is deployed | string |
 | cert_manager_version | Version of Cert Manager deployed | string |
 | cert_manager_issuers | List of ClusterIssuers created | list(string) |
-| ingress_nginx_enabled | Whether NGINX Ingress is enabled | bool |
-| ingress_nginx_namespace | Namespace where NGINX Ingress is deployed | string |
-| ingress_nginx_version | Version of NGINX Ingress deployed | string |
-| ingress_class_name | Name of the default ingress class | string |
-| prometheus_enabled | Whether Prometheus is enabled | bool |
-| prometheus_namespace | Namespace where Prometheus is deployed | string |
-| prometheus_version | Version of Prometheus deployed | string |
+
+### External DNS Outputs
+
+| Name | Description | Type |
+|------|-------------|------|
+| external_dns_enabled | Whether External DNS is enabled | bool |
+| external_dns_namespace | Namespace where External DNS is deployed | string |
+| external_dns_version | Version of External DNS deployed | string |
+
+### Prometheus Stack Outputs
+
+| Name | Description | Type |
+|------|-------------|------|
+| prometheus_stack_enabled | Whether Prometheus Stack is enabled | bool |
+| prometheus_stack_namespace | Namespace where Prometheus Stack is deployed | string |
+| prometheus_stack_version | Version of Prometheus Stack deployed | string |
 | prometheus_endpoint | Endpoint of the Prometheus service | string |
 | grafana_endpoint | Endpoint of the Grafana service | string |
-| loki_enabled | Whether Loki is enabled | bool |
-| loki_namespace | Namespace where Loki is deployed | string |
-| loki_version | Version of Loki deployed | string |
-| loki_endpoint | Endpoint of the Loki service | string |
-| velero_enabled | Whether Velero is enabled | bool |
-| velero_namespace | Namespace where Velero is deployed | string |
-| velero_version | Version of Velero deployed | string |
-| velero_schedules | List of backup schedules created | list(string) |
-| karpenter_enabled | Whether Karpenter is enabled | bool |
-| karpenter_namespace | Namespace where Karpenter is deployed | string |
-| karpenter_version | Version of Karpenter deployed | string |
-| fluent_bit_enabled | Whether Fluent Bit is enabled | bool |
-| fluent_bit_namespace | Namespace where Fluent Bit is deployed | string |
-| fluent_bit_version | Version of Fluent Bit deployed | string |
-| argocd_enabled | Whether ArgoCD is enabled | bool |
-| argocd_namespace | Namespace where ArgoCD is deployed | string |
-| argocd_version | Version of ArgoCD deployed | string |
-| argocd_endpoint | Endpoint of the ArgoCD UI service | string |
-| sealed_secrets_enabled | Whether Sealed Secrets is enabled | bool |
-| sealed_secrets_namespace | Namespace where Sealed Secrets is deployed | string |
-| sealed_secrets_version | Version of Sealed Secrets deployed | string |
-| istio_enabled | Whether Istio is enabled | bool |
-| istio_namespace | Namespace where Istio is deployed | string |
-| istiod_version | Version of Istiod deployed | string |
-| istio_ingress_enabled | Whether Istio Ingress Gateway is enabled | bool |
-| istio_ingress_endpoint | Endpoint of the Istio Ingress Gateway | string |
-| kyverno_enabled | Whether Kyverno is enabled | bool |
-| kyverno_namespace | Namespace where Kyverno is deployed | string |
-| kyverno_version | Version of Kyverno deployed | string |
-| crossplane_enabled | Whether Crossplane is enabled | bool |
-| crossplane_namespace | Namespace where Crossplane is deployed | string |
-| crossplane_version | Version of Crossplane deployed | string |
-| calico_enabled | Whether Calico is enabled | bool |
-| calico_namespace | Namespace where Calico is deployed | string |
-| calico_version | Version of Calico deployed | string |
-| csi_snapshotter_enabled | Whether CSI Snapshotter is enabled | bool |
-| csi_snapshotter_namespace | Namespace where CSI Snapshotter is deployed | string |
+
+### AWS Load Balancer Controller Outputs
+
+| Name | Description | Type |
+|------|-------------|------|
 | aws_load_balancer_controller_enabled | Whether AWS Load Balancer Controller is enabled | bool |
 | aws_load_balancer_controller_namespace | Namespace where AWS Load Balancer Controller is deployed | string |
 | aws_load_balancer_controller_version | Version of AWS Load Balancer Controller deployed | string |
-| app_gateway_ingress_controller_enabled | Whether Azure Application Gateway Ingress Controller is enabled | bool |
-| app_gateway_ingress_controller_namespace | Namespace where Azure Application Gateway Ingress Controller is deployed | string |
-| gcp_ingress_controller_enabled | Whether GCP Ingress Controller is enabled | bool |
-| gcp_ingress_controller_namespace | Namespace where GCP Ingress Controller is deployed | string |
-| installed_addons | Map of all installed addons with their status | map(map(string)) |
-| installed_addon_names | List of enabled addon names | list(string) |
-| addons_health | Consolidated health status of all installed addons. Includes `all_healthy` boolean and per-addon health states. | object({all_healthy = bool, addons = map(object)}) |
 
 ## Cloud-Specific Examples
 
