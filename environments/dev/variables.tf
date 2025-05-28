@@ -1,4 +1,10 @@
 #==============================================================================
+# This file defines input variables for the dev environment. These variables
+# allow you to customize project, region, naming, and ownership for resources
+# provisioned in this environment. Adjust defaults as needed for your team.
+#==============================================================================
+
+#==============================================================================
 # Dev Environment - Input Variables
 #==============================================================================
 
