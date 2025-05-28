@@ -194,6 +194,7 @@ module "eks" {
     Network     = "private"
   }
 }
+```
 
 ## Input Variables
 
