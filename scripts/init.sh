@@ -7,7 +7,7 @@
 # and prepares the backend for the selected environment.
 #==============================================================================
 
-set -e
+set -euo pipefail
 
 ENV_DIR=${1:-"environments/dev"}
 
@@ -15,6 +15,6 @@ echo "Initializing Terraform in $ENV_DIR ..."
 
 cd "$(dirname "$0")/../$ENV_DIR"
 
-terraform init
+terraform init -input=false
 
 echo "Terraform initialization complete for $ENV_DIR."

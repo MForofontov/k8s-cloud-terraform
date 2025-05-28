@@ -3,17 +3,20 @@
 #==============================================================================
 # Terraform Apply Script
 #
-# This script runs 'terraform apply' for the selected environment, applying
-# the planned infrastructure changes.
+# This script initializes the working directory (if needed) and runs
+# 'terraform apply' for the selected environment, applying the planned
+# infrastructure changes.
 #==============================================================================
 
-set -e
+set -euo pipefail
 
 ENV_DIR=${1:-"environments/dev"}
 
 echo "Running Terraform apply in $ENV_DIR ..."
 
 cd "$(dirname "$0")/../$ENV_DIR"
+
+terraform init -input=false
 
 terraform apply
 

@@ -7,13 +7,15 @@
 # the changes Terraform will make without applying them.
 #==============================================================================
 
-set -e
+set -euo pipefail
 
 ENV_DIR=${1:-"environments/dev"}
 
 echo "Running Terraform plan in $ENV_DIR ..."
 
 cd "$(dirname "$0")/../$ENV_DIR"
+
+terraform init -input=false
 
 terraform plan
 
