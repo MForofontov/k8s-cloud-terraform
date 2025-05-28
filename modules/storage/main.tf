@@ -43,14 +43,13 @@ resource "azurerm_storage_account" "this" {
   location                 = var.azure_location
   account_tier             = var.azure_account_tier
   account_replication_type = var.azure_account_replication_type
-  allow_blob_public_access = false
   tags                     = var.tags
 }
 
 resource "azurerm_storage_share" "this" {
   count                = var.cloud_provider == "azure" ? 1 : 0
   name                 = var.azure_files_share_name
-  storage_account_name = azurerm_storage_account.this[0].name
+  storage_account_id   = azurerm_storage_account.this[0].id
   quota                = var.azure_files_share_quota
   enabled_protocol     = "SMB"
 }
