@@ -74,7 +74,7 @@ module "kubernetes_addons" {
 | google | >= 4.0.0 |
 | kubernetes | >= 2.10.0 |
 | helm | >= 2.5.0 |
-| kubectl | >= 1.14.0 |
+| kubectl | >= 1.19.0 |
 
 ## Input Variables
 

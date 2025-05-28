@@ -31,12 +31,12 @@ This Terraform module creates and manages identity and access management (IAM) r
 | Name | Version |
 |------|---------|
 | terraform | >= 1.5.0 |
-| aws | ~> 5.50.0 |
-| azuread | ~> 2.45.0 |
-| azurerm | ~> 3.90.0 |
-| google | ~> 5.20.0 |
-| kubernetes | ~> 2.23.0 |
-| kubectl | ~> 1.14.0 |
+| aws | ~> 5.98.0 |
+| azuread | ~> 3.4.0 |
+| azurerm | ~> 4.30.0 |
+| google | ~> 6.37.0 |
+| kubernetes | ~> 2.37.1 |
+| kubectl | ~> 1.19.0 |
 
 ## Usage
 

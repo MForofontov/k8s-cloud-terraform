@@ -25,7 +25,7 @@ terraform {
     }
     kubectl = {
       source  = "gavinbunney/kubectl"
-      version = ">= 1.14.0"  # Used for applying custom resources when needed
+      version = ">= 1.19.0"  # Used for applying custom resources when needed
     }
   }
 }

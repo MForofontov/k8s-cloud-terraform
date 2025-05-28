@@ -58,9 +58,9 @@ module "network" {
 | Name | Version |
 |------|---------|
 | terraform | >= 1.0.0 |
-| aws | ~> 5.50.0 |
+| aws | ~> 5.98.0 |
 | azurerm | ~> 3.95.0 |
-| google | ~> 5.20.0 |
+| google | ~> 6.37.0 |
 
 ## Input Variables
 
