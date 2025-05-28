@@ -38,9 +38,9 @@ A comprehensive Terraform module to provision and manage production-ready Amazon
 | Name | Version |
 |------|---------|
 | terraform | >= 1.0.0 |
-| aws | ~> 5.50.0 |
-| kubernetes | ~> 2.30.0 |
-| tls | ~> 4.0.0 |
+| aws | ~> 5.98.0 |
+| kubernetes | ~> 2.37.1 |
+| tls | ~> 4.1.0 |
 
 ## Usage
 

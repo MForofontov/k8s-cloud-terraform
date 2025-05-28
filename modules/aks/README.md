@@ -33,8 +33,8 @@ A comprehensive Terraform module to provision and manage Azure Kubernetes Servic
 | Name       | Version     |
 |------------|-------------|
 | terraform  | >= 1.0.0    |
-| azurerm    | ~> 3.90.0   |
-| kubernetes | ~> 2.30.0   |
+| azurerm    | ~> 4.30.0   |
+| kubernetes | ~> 2.37.1   |
 | azuread    | ~> 2.48.0   |
 
 ## Usage
