@@ -1,10 +1,5 @@
 #==============================================================================
 # Multi-Cloud Storage Integration Module
-#
-# This module provisions cloud storage resources for Kubernetes clusters
-# across AWS, Azure, and GCP, enabling persistent storage for workloads.
-# It creates storage buckets/shares and outputs connection details for use
-# with CSI drivers or Kubernetes storage classes.
 #==============================================================================
 
 terraform {
@@ -43,15 +38,20 @@ resource "azurerm_storage_account" "this" {
   location                 = var.azure_location
   account_tier             = var.azure_account_tier
   account_replication_type = var.azure_account_replication_type
+  min_tls_version          = "TLS1_2"
   tags                     = var.tags
+  # Advanced: Enable blob encryption and disable public access if needed
+  blob_properties {
+    versioning_enabled = true
+  }
 }
 
 resource "azurerm_storage_share" "this" {
-  count                = var.cloud_provider == "azure" ? 1 : 0
-  name                 = var.azure_files_share_name
-  storage_account_id   = azurerm_storage_account.this[0].id
-  quota                = var.azure_files_share_quota
-  enabled_protocol     = "SMB"
+  count              = var.cloud_provider == "azure" ? 1 : 0
+  name               = var.azure_files_share_name
+  storage_account_id = azurerm_storage_account.this[0].id
+  quota              = var.azure_files_share_quota
+  enabled_protocol   = "SMB"
 }
 
 #------------------------------------------------------------------------------
@@ -63,4 +63,9 @@ resource "google_storage_bucket" "this" {
   location      = var.gcp_location
   storage_class = var.gcp_storage_class
   labels        = var.tags
+
+  versioning {
+    enabled = true
+  }
+  uniform_bucket_level_access = true
 }
