@@ -39,17 +39,17 @@ variable "cluster_context" {
     environment    = "dev"
     is_production  = false
   }
-  
+
   validation {
     condition     = contains(["aws", "azure", "gcp"], var.cluster_context.cloud_provider)
     error_message = "The cloud_provider value must be one of: aws, azure, gcp."
   }
-  
+
   validation {
     condition     = contains(["small", "medium", "large"], var.cluster_context.cluster_size)
     error_message = "The cluster_size value must be one of: small, medium, large."
   }
-  
+
   validation {
     condition     = contains(["dev", "staging", "prod"], var.cluster_context.environment)
     error_message = "The environment value must be one of: dev, staging, prod."
@@ -120,7 +120,7 @@ variable "cluster_autoscaler" {
     values             = optional(string, "")
     set_values         = optional(map(any), {})
     set                = optional(map(string), {})
-    
+
     # Cloud provider-specific settings
     aws_config = optional(object({
       auto_discovery = optional(bool, true)
@@ -129,7 +129,7 @@ variable "cluster_autoscaler" {
       role_arn       = optional(string)
       expander       = optional(string, "least-waste")
     }))
-    
+
     azure_config = optional(object({
       node_resource_group = optional(string)
       subscription_id     = optional(string)
@@ -138,7 +138,7 @@ variable "cluster_autoscaler" {
       client_secret       = optional(string)
       cluster_name        = optional(string)
     }))
-    
+
     gcp_config = optional(object({
       project_id   = optional(string)
       location     = optional(string)
@@ -176,7 +176,7 @@ variable "karpenter" {
     values             = optional(string, "")
     set_values         = optional(map(any), {})
     set                = optional(map(string), {})
-    
+
     # Cloud provider settings
     aws_config = optional(object({
       cluster_name        = optional(string)
@@ -184,7 +184,7 @@ variable "karpenter" {
       instance_profile    = optional(string)
       interrupt_queue_name = optional(string)
     }))
-    
+
     # Default provisioner settings
     provisioner = optional(object({
       create_default     = optional(bool, true)
@@ -226,7 +226,7 @@ variable "nginx_ingress" {
     values             = optional(string, "")
     set_values         = optional(map(any), {})
     set                = optional(map(string), {})
-    
+
     # Controller configuration
     controller = optional(object({
       replicas          = optional(number)
@@ -236,7 +236,7 @@ variable "nginx_ingress" {
       publish_service   = optional(bool, true)
       internal          = optional(bool, false)
       enable_metrics    = optional(bool, true)
-      
+
       resources = optional(object({
         requests = optional(object({
           cpu    = optional(string, "100m")
@@ -279,7 +279,7 @@ variable "cert_manager" {
     values             = optional(string, "")
     set_values         = optional(map(any), { installCRDs = true })
     set                = optional(map(string), {})
-    
+
     # Cluster issuers configuration
     cluster_issuers = optional(object({
       create_selfsigned_issuer = optional(bool, true)
@@ -296,7 +296,7 @@ variable "cert_manager" {
         }))
       })))
     }))
-    
+
     # Resource usage settings
     resources = optional(object({
       requests = optional(object({
@@ -339,7 +339,7 @@ variable "external_dns" {
     values             = optional(string, "")
     set_values         = optional(map(any), {})
     set                = optional(map(string), {})
-    
+
     # Provider configuration
     provider_config = optional(object({
       provider           = optional(string)  # aws, google, azure, etc.
@@ -349,21 +349,21 @@ variable "external_dns" {
       txt_prefix         = optional(string)
       registry           = optional(string, "txt")
       policy             = optional(string, "upsert-only")
-      
+
       # AWS specific
       aws_zone_type      = optional(string)  # public, private
       aws_assume_role    = optional(string)
       aws_batch_change_size = optional(number, 1000)
-      
+
       # Azure specific
       azure_resource_group = optional(string)
       azure_subscription_id = optional(string)
       azure_tenant_id    = optional(string)
-      
+
       # Google specific
       google_project     = optional(string)
     }))
-    
+
     # Resource usage settings
     resources = optional(object({
       requests = optional(object({
@@ -407,7 +407,7 @@ variable "prometheus_stack" {
     values             = optional(string, "")
     set_values         = optional(map(any), {})
     set                = optional(map(string), {})
-    
+
     # Prometheus server configuration
     prometheus = optional(object({
       retention        = optional(string, "10d")
@@ -415,14 +415,14 @@ variable "prometheus_stack" {
       evaluation_interval = optional(string, "30s")
       enable_remote_write = optional(bool, false)
       remote_write_urls = optional(list(string), [])
-      
+
       # Storage configuration
       storage = optional(object({
         size           = optional(string, "50Gi")
         storage_class  = optional(string)
         retention_size = optional(string, "50GiB")
       }))
-      
+
       # Resource usage settings
       resources = optional(object({
         requests = optional(object({
@@ -435,19 +435,19 @@ variable "prometheus_stack" {
         }))
       }))
     }))
-    
+
     # Alertmanager configuration
     alertmanager = optional(object({
       enabled          = optional(bool, true)
       replicas         = optional(number)
       retention        = optional(string, "120h")
-      
+
       # Storage configuration
       storage = optional(object({
         size          = optional(string, "10Gi")
         storage_class = optional(string)
       }))
-      
+
       # Resource usage settings
       resources = optional(object({
         requests = optional(object({
@@ -460,13 +460,13 @@ variable "prometheus_stack" {
         }))
       }))
     }))
-    
+
     # Grafana configuration
     grafana = optional(object({
       enabled         = optional(bool, true)
       admin_password  = optional(string, "prom-operator")
       admin_user      = optional(string, "admin")
-      
+
       # Ingress configuration
       ingress = optional(object({
         enabled      = optional(bool, false)
@@ -476,7 +476,7 @@ variable "prometheus_stack" {
         tls_secret   = optional(string)
         annotations  = optional(map(string), {})
       }))
-      
+
       # Resource usage settings
       resources = optional(object({
         requests = optional(object({
@@ -488,7 +488,7 @@ variable "prometheus_stack" {
           memory = optional(string, "256Mi")
         }))
       }))
-      
+
       # Persistent storage
       persistence = optional(object({
         enabled      = optional(bool, true)
@@ -527,7 +527,7 @@ variable "fluent_bit" {
     values             = optional(string, "")
     set_values         = optional(map(any), {})
     set                = optional(map(string), {})
-    
+
     # Output configuration
     outputs = optional(object({
       # Elasticsearch output
@@ -541,7 +541,7 @@ variable "fluent_bit" {
         http_passwd = optional(string)
         tls         = optional(bool, false)
       }))
-      
+
       # Amazon CloudWatch Logs output
       cloudwatch = optional(object({
         enabled     = optional(bool, false)
@@ -550,7 +550,7 @@ variable "fluent_bit" {
         log_stream_name = optional(string)
         auto_create_group = optional(bool, true)
       }))
-      
+
       # Loki output
       loki = optional(object({
         enabled     = optional(bool, false)
@@ -559,7 +559,7 @@ variable "fluent_bit" {
         tenant_id   = optional(string)
         labels      = optional(map(string), {})
       }))
-      
+
       # S3 output
       s3 = optional(object({
         enabled     = optional(bool, false)
@@ -569,7 +569,7 @@ variable "fluent_bit" {
         upload_timeout = optional(string, "10m")
       }))
     }))
-    
+
     # Resource usage settings
     resources = optional(object({
       requests = optional(object({
@@ -612,11 +612,11 @@ variable "argocd" {
     values             = optional(string, "")
     set_values         = optional(map(any), {})
     set                = optional(map(string), {})
-    
+
     # Server configuration
     server = optional(object({
       replicas         = optional(number)
-      
+
       # Ingress configuration
       ingress = optional(object({
         enabled        = optional(bool, false)
@@ -626,7 +626,7 @@ variable "argocd" {
         tls_secret     = optional(string)
         annotations    = optional(map(string), {})
       }))
-      
+
       # Resource usage settings
       resources = optional(object({
         requests = optional(object({
@@ -639,7 +639,7 @@ variable "argocd" {
         }))
       }))
     }))
-    
+
     # Authentication and SSO
     auth = optional(object({
       admin_password     = optional(string)
@@ -651,7 +651,7 @@ variable "argocd" {
         groups           = optional(list(string), [])
       }))
     }))
-    
+
     # Git repositories
     repositories = optional(map(object({
       url              = string
@@ -691,11 +691,11 @@ variable "velero" {
     values             = optional(string, "")
     set_values         = optional(map(any), {})
     set                = optional(map(string), {})
-    
+
     # Backup storage location configuration
     backup_storage = optional(object({
       provider         = optional(string)  # aws, gcp, azure, etc.
-      
+
       # AWS S3 configuration
       aws = optional(object({
         bucket         = optional(string)
@@ -703,7 +703,7 @@ variable "velero" {
         s3_url         = optional(string)
         kms_key_id     = optional(string)
       }))
-      
+
       # Azure Blob Storage configuration
       azure = optional(object({
         resource_group  = optional(string)
@@ -711,35 +711,35 @@ variable "velero" {
         subscription_id = optional(string)
         bucket          = optional(string)
       }))
-      
+
       # Google Cloud Storage configuration
       gcp = optional(object({
         bucket         = optional(string)
         project        = optional(string)
       }))
     }))
-    
+
     # Volume snapshot provider configuration
     snapshot_provider = optional(object({
       provider         = optional(string)  # aws, gcp, azure, etc.
-      
+
       # AWS EBS configuration
       aws = optional(object({
         region         = optional(string)
       }))
-      
+
       # Azure Disk configuration
       azure = optional(object({
         resource_group  = optional(string)
         subscription_id = optional(string)
       }))
-      
+
       # Google Persistent Disk configuration
       gcp = optional(object({
         project        = optional(string)
       }))
     }))
-    
+
     # Backup schedules
     schedules = optional(map(object({
       schedule         = string  # cron format, e.g., "0 1 * * *" for daily at 1:00 AM
@@ -753,7 +753,7 @@ variable "velero" {
         snapshotVolumes = optional(bool, true)
       }))
     })), {})
-    
+
     # Resource usage settings
     resources = optional(object({
       requests = optional(object({
@@ -796,14 +796,14 @@ variable "sealed_secrets" {
     values             = optional(string, "")
     set_values         = optional(map(any), {})
     set                = optional(map(string), {})
-    
+
     # Key management configuration
     key_management = optional(object({
       enable_key_rotation = optional(bool, true)
       rotation_period     = optional(string, "30d")
       key_ttl             = optional(string, "180d")
     }))
-    
+
     # Resource usage settings
     resources = optional(object({
       requests = optional(object({
@@ -841,21 +841,21 @@ variable "istio" {
     atomic             = optional(bool, true)
     cleanup_on_fail    = optional(bool, true)
     wait               = optional(bool, true)
-    
+
     # Base installation (CRDs and cluster resources)
     base_name          = optional(string, "istio-base")
     base_chart         = optional(string, "base")
     base_values        = optional(string, "")
     base_set_values    = optional(map(any), {})
     base_set           = optional(map(string), {})
-    
+
     # Istiod installation (control plane)
     istiod_name        = optional(string, "istiod")
     istiod_chart       = optional(string, "istiod")
     istiod_values      = optional(string, "")
     istiod_set_values  = optional(map(any), {})
     istiod_set         = optional(map(string), {})
-    
+
     # Ingress gateway installation (entry point for external traffic)
     enable_ingress     = optional(bool, true)
     ingress_name       = optional(string, "istio-ingress")
@@ -863,7 +863,7 @@ variable "istio" {
     ingress_values     = optional(string, "")
     ingress_set_values = optional(map(any), {})
     ingress_set        = optional(map(string), {})
-    
+
     # Mesh configuration
     mesh_config = optional(object({
       enable_auto_injection = optional(bool, false)
@@ -873,7 +873,7 @@ variable "istio" {
       tracing_provider   = optional(string, "jaeger")  # jaeger, zipkin, datadog
       enable_access_logs = optional(bool, true)
     }))
-    
+
     # Resource usage settings
     resources = optional(object({
       istiod = optional(object({
@@ -886,7 +886,7 @@ variable "istio" {
           memory = optional(string, "4Gi")
         }))
       }))
-      
+
       ingress = optional(object({
         requests = optional(object({
           cpu    = optional(string, "100m")
@@ -929,7 +929,7 @@ variable "kyverno" {
     values             = optional(string, "")
     set_values         = optional(map(any), {})
     set                = optional(map(string), {})
-    
+
     # Policy configuration
     policies = optional(object({
       enable_default_policies = optional(bool, false)
@@ -941,14 +941,14 @@ variable "kyverno" {
       allowed_repositories    = optional(list(string), [])
       allowed_registries      = optional(list(string), [])
     }))
-    
+
     # Policy reporter configuration
     policy_reporter = optional(object({
       enabled        = optional(bool, true)
       ui_enabled     = optional(bool, true)
       prometheus     = optional(bool, true)
     }))
-    
+
     # Resource usage settings
     resources = optional(object({
       requests = optional(object({
@@ -991,7 +991,7 @@ variable "crossplane" {
     values             = optional(string, "")
     set_values         = optional(map(any), {})
     set                = optional(map(string), {})
-    
+
     # Provider configuration
     providers = optional(object({
       aws = optional(object({
@@ -999,30 +999,30 @@ variable "crossplane" {
         version        = optional(string, "v0.36.0")
         credentials_secret_name = optional(string)
       }))
-      
+
       azure = optional(object({
         enabled        = optional(bool, false)
         version        = optional(string, "v0.19.0")
         credentials_secret_name = optional(string)
       }))
-      
+
       gcp = optional(object({
         enabled        = optional(bool, false)
         version        = optional(string, "v0.21.0")
         credentials_secret_name = optional(string)
       }))
-      
+
       kubernetes = optional(object({
         enabled        = optional(bool, false)
         version        = optional(string, "v0.5.0")
       }))
-      
+
       helm = optional(object({
         enabled        = optional(bool, false)
         version        = optional(string, "v0.13.0")
       }))
     }))
-    
+
     # Resource usage settings
     resources = optional(object({
       requests = optional(object({
@@ -1065,7 +1065,7 @@ variable "aws_load_balancer_controller" {
     values             = optional(string, "")
     set_values         = optional(map(any), {})
     set                = optional(map(string), {})
-    
+
     # AWS configuration
     aws_config = optional(object({
       cluster_name     = string
@@ -1077,7 +1077,7 @@ variable "aws_load_balancer_controller" {
         annotations    = optional(map(string), {})
       }))
     }))
-    
+
     # Controller configuration
     controller_config = optional(object({
       enable_shield        = optional(bool, false)
@@ -1087,7 +1087,7 @@ variable "aws_load_balancer_controller" {
       default_tags         = optional(map(string), {})
       sync_period          = optional(string, "1h")
     }))
-    
+
     # Resource usage settings
     resources = optional(object({
       requests = optional(object({
@@ -1101,7 +1101,7 @@ variable "aws_load_balancer_controller" {
     }))
   })
   default = {}
-  
+
   validation {
     condition     = var.enable_aws_load_balancer_controller == false || try(var.aws_load_balancer_controller.aws_config.cluster_name, null) != null
     error_message = "When AWS Load Balancer Controller is enabled, aws_config.cluster_name must be specified."

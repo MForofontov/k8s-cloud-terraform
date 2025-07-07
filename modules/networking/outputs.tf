@@ -47,7 +47,7 @@ output "subnet_names" {
 
 output "public_subnet_ids" {
   description = "List of public subnet IDs"
-  value       = [for idx in local.public_subnet_indices : 
+  value       = [for idx in local.public_subnet_indices :
                 local.is_aws ? aws_subnet.this[idx].id : (
                 local.is_azure ? azurerm_subnet.this[idx].id : (
                 local.is_gcp ? google_compute_subnetwork.this[idx].id : null
@@ -56,7 +56,7 @@ output "public_subnet_ids" {
 
 output "private_subnet_ids" {
   description = "List of private subnet IDs"
-  value       = [for idx in local.private_subnet_indices : 
+  value       = [for idx in local.private_subnet_indices :
                 local.is_aws ? aws_subnet.this[idx].id : (
                 local.is_azure ? azurerm_subnet.this[idx].id : (
                 local.is_gcp ? google_compute_subnetwork.this[idx].id : null
@@ -215,12 +215,12 @@ output "k8s_network_config" {
                        local.is_azure ? azurerm_subnet.this[*].id : (
                        local.is_gcp ? google_compute_subnetwork.this[*].id : null
                        ))
-    public_subnets   = [for idx in local.public_subnet_indices : 
+    public_subnets   = [for idx in local.public_subnet_indices :
                        local.is_aws ? aws_subnet.this[idx].id : (
                        local.is_azure ? azurerm_subnet.this[idx].id : (
                        local.is_gcp ? google_compute_subnetwork.this[idx].id : null
                        ))]
-    private_subnets  = [for idx in local.private_subnet_indices : 
+    private_subnets  = [for idx in local.private_subnet_indices :
                        local.is_aws ? aws_subnet.this[idx].id : (
                        local.is_azure ? azurerm_subnet.this[idx].id : (
                        local.is_gcp ? google_compute_subnetwork.this[idx].id : null

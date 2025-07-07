@@ -324,85 +324,85 @@ output "installed_addons" {
       namespace = helm_release.metrics_server[0].namespace
       version   = helm_release.metrics_server[0].version
     } : { enabled = false }
-    
+
     "cluster-autoscaler" = var.enable_cluster_autoscaler ? {
       enabled   = true
       namespace = helm_release.cluster_autoscaler[0].namespace
       version   = helm_release.cluster_autoscaler[0].version
     } : { enabled = false }
-    
+
     "karpenter" = var.enable_karpenter ? {
       enabled   = true
       namespace = helm_release.karpenter[0].namespace
       version   = helm_release.karpenter[0].version
     } : { enabled = false }
-    
+
     "nginx-ingress" = var.enable_nginx_ingress ? {
       enabled   = true
       namespace = helm_release.nginx_ingress[0].namespace
       version   = helm_release.nginx_ingress[0].version
     } : { enabled = false }
-    
+
     "cert-manager" = var.enable_cert_manager ? {
       enabled   = true
       namespace = helm_release.cert_manager[0].namespace
       version   = helm_release.cert_manager[0].version
     } : { enabled = false }
-    
+
     "external-dns" = var.enable_external_dns ? {
       enabled   = true
       namespace = helm_release.external_dns[0].namespace
       version   = helm_release.external_dns[0].version
     } : { enabled = false }
-    
+
     "prometheus-stack" = var.enable_prometheus_stack ? {
       enabled   = true
       namespace = helm_release.prometheus_stack[0].namespace
       version   = helm_release.prometheus_stack[0].version
     } : { enabled = false }
-    
+
     "fluent-bit" = var.enable_fluent_bit ? {
       enabled   = true
       namespace = helm_release.fluent_bit[0].namespace
       version   = helm_release.fluent_bit[0].version
     } : { enabled = false }
-    
+
     "argocd" = var.enable_argocd ? {
       enabled   = true
       namespace = helm_release.argocd[0].namespace
       version   = helm_release.argocd[0].version
     } : { enabled = false }
-    
+
     "velero" = var.enable_velero ? {
       enabled   = true
       namespace = helm_release.velero[0].namespace
       version   = helm_release.velero[0].version
     } : { enabled = false }
-    
+
     "sealed-secrets" = var.enable_sealed_secrets ? {
       enabled   = true
       namespace = helm_release.sealed_secrets[0].namespace
       version   = helm_release.sealed_secrets[0].version
     } : { enabled = false }
-    
+
     "kyverno" = var.enable_kyverno ? {
       enabled   = true
       namespace = helm_release.kyverno[0].namespace
       version   = helm_release.kyverno[0].version
     } : { enabled = false }
-    
+
     "crossplane" = var.enable_crossplane ? {
       enabled   = true
       namespace = helm_release.crossplane[0].namespace
       version   = helm_release.crossplane[0].version
     } : { enabled = false }
-    
+
     "aws-load-balancer-controller" = var.enable_aws_load_balancer_controller ? {
       enabled   = true
       namespace = helm_release.aws_load_balancer_controller[0].namespace
       version   = helm_release.aws_load_balancer_controller[0].version
     } : { enabled = false }
-    
+
     "istio" = var.enable_istio ? {
       enabled        = true
       namespace      = helm_release.istio_base[0].namespace
@@ -436,7 +436,7 @@ output "addons_health" {
       for name, addon in output.installed_addons.value :
         addon.enabled == false ? true : true  # This would be replaced with actual health checks in a production version
     ])
-    
+
     # This could be enhanced with actual health check data in a real implementation
     addon_status = {
       for name, addon in output.installed_addons.value :

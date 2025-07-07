@@ -38,34 +38,34 @@ locals {
   is_aws    = var.cloud_provider == "aws"
   is_azure  = var.cloud_provider == "azure"
   is_gcp    = var.cloud_provider == "gcp"
-  
+
   # Network CIDR handling
   vpc_cidr = coalesce(var.vpc_cidr, "10.0.0.0/16")
-  
+
   # IPv6 configuration
   enable_ipv6 = var.enable_ipv6 == true
-  
+
   # Automated subnet CIDR calculation for both IPv4 and IPv6
   # Divides VPC CIDR into equal subnets based on subnet count
   subnet_count = length(var.subnet_names) > 0 ? length(var.subnet_names) : 4
   subnet_newbits = ceil(log(local.subnet_count, 2))
-  
+
   # Calculate subnet CIDRs if not explicitly provided
   subnet_cidrs = var.subnet_cidrs != null ? var.subnet_cidrs : [
     for i in range(local.subnet_count) : cidrsubnet(local.vpc_cidr, local.subnet_newbits, i)
   ]
-  
+
   # Resource naming
   vpc_name = coalesce(var.vpc_name, "${var.name_prefix}-vpc")
   subnet_names = var.subnet_names != null ? var.subnet_names : [
-    for i in range(local.subnet_count) : 
+    for i in range(local.subnet_count) :
     "${var.name_prefix}-subnet-${i + 1}"
   ]
-  
+
   # Default subnet indices
   public_subnet_indices = length(var.public_subnet_indices) > 0 ? var.public_subnet_indices : [0, 1]
   private_subnet_indices = length(var.private_subnet_indices) > 0 ? var.private_subnet_indices : [2, 3]
-  
+
   # Enhanced tagging with standard keys
   common_tags = merge({
     "Environment"     = var.environment
@@ -73,7 +73,7 @@ locals {
     "Module"          = "networking"
     "CloudProvider"   = var.cloud_provider
   }, var.tags)
-  
+
   # Service endpoint configurations
   aws_vpc_endpoints = var.enable_service_endpoints && local.is_aws ? {
     "s3"       = { service = "s3", service_type = "Gateway" }
@@ -98,7 +98,7 @@ resource "aws_vpc" "this" {
   enable_dns_support               = true
   enable_dns_hostnames             = true
   assign_generated_ipv6_cidr_block = local.enable_ipv6
-  
+
   tags = merge(local.common_tags, {
     Name = local.vpc_name
   })
@@ -110,11 +110,11 @@ resource "aws_subnet" "this" {
   cidr_block                      = local.subnet_cidrs[count.index]
   availability_zone               = length(var.availability_zones) > count.index ? var.availability_zones[count.index] : null
   map_public_ip_on_launch         = contains(local.public_subnet_indices, count.index) ? true : false
-  
+
   # Configure IPv6 if enabled
   ipv6_cidr_block                 = local.enable_ipv6 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, count.index) : null
   assign_ipv6_address_on_creation = local.enable_ipv6 && contains(local.public_subnet_indices, count.index) ? true : false
-  
+
   tags = merge(local.common_tags, {
     Name = local.subnet_names[count.index]
     "kubernetes.io/role/internal-elb" = contains(local.private_subnet_indices, count.index) ? "1" : "0"
@@ -129,7 +129,7 @@ resource "aws_subnet" "this" {
 resource "aws_internet_gateway" "this" {
   count  = local.is_aws && var.create_internet_gateway ? 1 : 0
   vpc_id = aws_vpc.this[0].id
-  
+
   tags = merge(local.common_tags, {
     Name = "${var.name_prefix}-igw"
   })
@@ -139,7 +139,7 @@ resource "aws_internet_gateway" "this" {
 resource "aws_egress_only_internet_gateway" "this" {
   count  = local.is_aws && local.enable_ipv6 ? 1 : 0
   vpc_id = aws_vpc.this[0].id
-  
+
   tags = merge(local.common_tags, {
     Name = "${var.name_prefix}-eigw"
   })
@@ -149,7 +149,7 @@ resource "aws_egress_only_internet_gateway" "this" {
 resource "aws_route_table" "public" {
   count  = local.is_aws && var.create_internet_gateway ? 1 : 0
   vpc_id = aws_vpc.this[0].id
-  
+
   tags = merge(local.common_tags, {
     Name = "${var.name_prefix}-public-rt"
     Tier = "public"
@@ -186,7 +186,7 @@ resource "aws_route_table_association" "public" {
 resource "aws_eip" "nat" {
   count  = local.is_aws && var.create_nat_gateway ? var.single_nat_gateway ? 1 : length(local.public_subnet_indices) : 0
   domain = "vpc"
-  
+
   tags = merge(local.common_tags, {
     Name = var.single_nat_gateway ? "${var.name_prefix}-nat-eip" : "${var.name_prefix}-nat-eip-${count.index + 1}"
   })
@@ -197,11 +197,11 @@ resource "aws_nat_gateway" "this" {
   count         = local.is_aws && var.create_nat_gateway ? var.single_nat_gateway ? 1 : length(local.public_subnet_indices) : 0
   allocation_id = aws_eip.nat[count.index].id
   subnet_id     = aws_subnet.this[local.public_subnet_indices[count.index]].id
-  
+
   tags = merge(local.common_tags, {
     Name = var.single_nat_gateway ? "${var.name_prefix}-nat" : "${var.name_prefix}-nat-${count.index + 1}"
   })
-  
+
   depends_on = [aws_internet_gateway.this]
 }
 
@@ -209,7 +209,7 @@ resource "aws_nat_gateway" "this" {
 resource "aws_route_table" "private" {
   count  = local.is_aws && var.create_nat_gateway ? var.single_nat_gateway ? 1 : length(local.private_subnet_indices) : 0
   vpc_id = aws_vpc.this[0].id
-  
+
   tags = merge(local.common_tags, {
     Name = var.single_nat_gateway ? "${var.name_prefix}-private-rt" : "${var.name_prefix}-private-rt-${count.index + 1}"
     Tier = "private"
@@ -245,12 +245,12 @@ resource "aws_route_table_association" "private" {
 # Gateway endpoints (S3, DynamoDB) - don't require elastic network interfaces
 resource "aws_vpc_endpoint" "gateway" {
   for_each = { for k, v in local.aws_vpc_endpoints : k => v if v.service_type == "Gateway" }
-  
+
   vpc_id            = aws_vpc.this[0].id
   service_name      = "com.amazonaws.${var.aws_region}.${each.value.service}"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = var.single_nat_gateway ? [aws_route_table.private[0].id] : aws_route_table.private[*].id
-  
+
   tags = merge(local.common_tags, {
     Name = "${var.name_prefix}-${each.key}-endpoint"
   })
@@ -259,14 +259,14 @@ resource "aws_vpc_endpoint" "gateway" {
 # Interface endpoints (ECR, EC2, etc.) - require elastic network interfaces in subnets
 resource "aws_vpc_endpoint" "interface" {
   for_each = { for k, v in local.aws_vpc_endpoints : k => v if v.service_type == "Interface" }
-  
+
   vpc_id              = aws_vpc.this[0].id
   service_name        = "com.amazonaws.${var.aws_region}.${each.value.service}"
   vpc_endpoint_type   = "Interface"
   private_dns_enabled = true
   subnet_ids          = [for idx in local.private_subnet_indices : aws_subnet.this[idx].id]
   security_group_ids  = [aws_security_group.endpoints[0].id]
-  
+
   tags = merge(local.common_tags, {
     Name = "${var.name_prefix}-${each.key}-endpoint"
   })
@@ -277,7 +277,7 @@ resource "aws_security_group" "endpoints" {
   count  = local.is_aws && var.enable_service_endpoints ? 1 : 0
   name   = "${var.name_prefix}-endpoint-sg"
   vpc_id = aws_vpc.this[0].id
-  
+
   ingress {
     from_port   = 443
     to_port     = 443
@@ -285,7 +285,7 @@ resource "aws_security_group" "endpoints" {
     cidr_blocks = [local.vpc_cidr]
     description = "Allow HTTPS from VPC CIDR"
   }
-  
+
   tags = merge(local.common_tags, {
     Name = "${var.name_prefix}-endpoint-sg"
   })
@@ -298,7 +298,7 @@ resource "aws_security_group" "this" {
   count  = local.is_aws ? 1 : 0
   name   = "${var.name_prefix}-sg"
   vpc_id = aws_vpc.this[0].id
-  
+
   # Allow all outbound traffic by default
   egress {
     from_port   = 0
@@ -307,7 +307,7 @@ resource "aws_security_group" "this" {
     cidr_blocks = ["0.0.0.0/0"]
     description = "Allow all outbound traffic"
   }
-  
+
   # IPv6 egress if enabled
   dynamic "egress" {
     for_each = local.enable_ipv6 ? [1] : []
@@ -319,7 +319,7 @@ resource "aws_security_group" "this" {
       description      = "Allow all IPv6 outbound traffic"
     }
   }
-  
+
   tags = merge(local.common_tags, {
     Name = "${var.name_prefix}-sg"
   })
@@ -332,7 +332,7 @@ resource "aws_cloudwatch_log_group" "flow_log" {
   count             = local.is_aws && var.enable_flow_logs ? 1 : 0
   name              = "/aws/vpc-flow-logs/${local.vpc_name}"
   retention_in_days = var.flow_logs_retention_days
-  
+
   tags = merge(local.common_tags, {
     Name = "${var.name_prefix}-flow-logs"
   })
@@ -341,7 +341,7 @@ resource "aws_cloudwatch_log_group" "flow_log" {
 resource "aws_iam_role" "flow_log_role" {
   count = local.is_aws && var.enable_flow_logs ? 1 : 0
   name  = "${var.name_prefix}-flow-log-role"
-  
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -352,7 +352,7 @@ resource "aws_iam_role" "flow_log_role" {
       }
     }]
   })
-  
+
   tags = local.common_tags
 }
 
@@ -360,7 +360,7 @@ resource "aws_iam_role_policy" "flow_log_policy" {
   count = local.is_aws && var.enable_flow_logs ? 1 : 0
   name  = "${var.name_prefix}-flow-log-policy"
   role  = aws_iam_role.flow_log_role[0].id
-  
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -384,7 +384,7 @@ resource "aws_flow_log" "this" {
   traffic_type         = "ALL"
   vpc_id               = aws_vpc.this[0].id
   log_destination_type = "cloud-watch-logs"
-  
+
   tags = merge(local.common_tags, {
     Name = "${var.name_prefix}-vpc-flow-log"
   })
@@ -401,7 +401,7 @@ resource "azurerm_resource_group" "this" {
   count    = local.is_azure ? 1 : 0
   name     = "${var.name_prefix}-rg"
   location = var.azure_location
-  
+
   tags = local.common_tags
 }
 
@@ -414,7 +414,7 @@ resource "azurerm_virtual_network" "this" {
   resource_group_name = azurerm_resource_group.this[0].name
   location            = azurerm_resource_group.this[0].location
   address_space       = [local.vpc_cidr]
-  
+
   # Add IPv6 address space if enabled
   dynamic "ddos_protection_plan" {
     for_each = var.azure_enable_ddos_protection ? [1] : []
@@ -423,7 +423,7 @@ resource "azurerm_virtual_network" "this" {
       enable = true
     }
   }
-  
+
   tags = local.common_tags
 }
 
@@ -433,7 +433,7 @@ resource "azurerm_network_ddos_protection_plan" "this" {
   name                = "${var.name_prefix}-ddos-plan"
   location            = azurerm_resource_group.this[0].location
   resource_group_name = azurerm_resource_group.this[0].name
-  
+
   tags = local.common_tags
 }
 
@@ -443,7 +443,7 @@ resource "azurerm_subnet" "this" {
   resource_group_name  = azurerm_resource_group.this[0].name
   virtual_network_name = azurerm_virtual_network.this[0].name
   address_prefixes     = [local.subnet_cidrs[count.index]]
-  
+
   # Enable service endpoints for private subnets
   dynamic "service_endpoints" {
     for_each = var.enable_service_endpoints && contains(local.private_subnet_indices, count.index) ? var.azure_service_endpoints : []
@@ -451,13 +451,13 @@ resource "azurerm_subnet" "this" {
       service = service_endpoints.value
     }
   }
-  
+
   # Delegation for specific Azure services if required
   dynamic "delegation" {
     for_each = contains(local.private_subnet_indices, count.index) && var.azure_subnet_delegations != null ? var.azure_subnet_delegations : {}
     content {
       name = delegation.key
-      
+
       service_delegation {
         name    = delegation.value.service_name
         actions = delegation.value.actions
@@ -477,7 +477,7 @@ resource "azurerm_public_ip" "nat" {
   allocation_method   = "Static"
   sku                 = "Standard"
   zones               = var.azure_enable_zones ? ["1", "2", "3"] : null
-  
+
   tags = local.common_tags
 }
 
@@ -489,7 +489,7 @@ resource "azurerm_nat_gateway" "this" {
   sku_name                = "Standard"
   idle_timeout_in_minutes = 10
   zones                   = var.azure_enable_zones ? ["1", "2", "3"] : null
-  
+
   tags = local.common_tags
 }
 
@@ -515,7 +515,7 @@ resource "azurerm_network_security_group" "this" {
   name                = "${var.name_prefix}-nsg"
   location            = azurerm_resource_group.this[0].location
   resource_group_name = azurerm_resource_group.this[0].name
-  
+
   # Allow all outbound traffic by default
   security_rule {
     name                       = "AllowOutbound"
@@ -528,7 +528,7 @@ resource "azurerm_network_security_group" "this" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
-  
+
   # Deny all inbound traffic by default (explicit deny)
   security_rule {
     name                       = "DenyAllInbound"
@@ -541,7 +541,7 @@ resource "azurerm_network_security_group" "this" {
     source_address_prefix      = "*"
     destination_address_prefix = "*"
   }
-  
+
   tags = local.common_tags
 }
 
@@ -560,7 +560,7 @@ resource "azurerm_network_watcher" "this" {
   name                = "${var.name_prefix}-network-watcher"
   location            = azurerm_resource_group.this[0].location
   resource_group_name = azurerm_resource_group.this[0].name
-  
+
   tags = local.common_tags
 }
 
@@ -572,7 +572,7 @@ resource "azurerm_storage_account" "flow_logs" {
   account_tier             = "Standard"
   account_replication_type = "LRS"
   min_tls_version          = "TLS1_2"
-  
+
   tags = local.common_tags
 }
 
@@ -581,16 +581,16 @@ resource "azurerm_network_watcher_flow_log" "this" {
   network_watcher_name = azurerm_network_watcher.this[0].name
   resource_group_name  = azurerm_resource_group.this[0].name
   name                 = "${var.name_prefix}-flow-log"
-  
+
   target_resource_id   = azurerm_network_security_group.this[0].id
   storage_account_id        = azurerm_storage_account.flow_logs[0].id
   enabled                   = true
-  
+
   retention_policy {
     enabled = true
     days    = var.flow_logs_retention_days
   }
-  
+
   traffic_analytics {
     enabled               = true
     workspace_id          = var.azure_log_analytics_workspace_id
@@ -612,10 +612,10 @@ resource "google_compute_network" "this" {
   name                    = local.vpc_name
   auto_create_subnetworks = false
   project                 = var.gcp_project_id
-  
+
   # Enable global routing if specified
   routing_mode            = var.gcp_routing_mode
-  
+
   # Enable dual-stack IPv6 if specified
   dynamic "ipv6_access_type" {
     for_each = local.enable_ipv6 ? ["EXTERNAL"] : []
@@ -633,10 +633,10 @@ resource "google_compute_subnetwork" "this" {
   region         = var.gcp_region
   network        = google_compute_network.this[0].id
   project        = var.gcp_project_id
-  
+
   # Enable private Google access for private subnets
   private_ip_google_access = contains(local.private_subnet_indices, count.index) ? true : false
-  
+
   # Enable flow logs if requested
   dynamic "log_config" {
     for_each = var.enable_flow_logs ? [1] : []
@@ -646,7 +646,7 @@ resource "google_compute_subnetwork" "this" {
       metadata             = "INCLUDE_ALL_METADATA"
     }
   }
-  
+
   # Configure IPv6 if enabled and this is a public subnet
   dynamic "ipv6_access_type" {
     for_each = local.enable_ipv6 && contains(local.public_subnet_indices, count.index) ? ["EXTERNAL"] : []
@@ -666,7 +666,7 @@ resource "google_compute_router" "this" {
   region  = var.gcp_region
   network = google_compute_network.this[0].id
   project = var.gcp_project_id
-  
+
   bgp {
     asn = 64514
   }
@@ -680,7 +680,7 @@ resource "google_compute_router_nat" "this" {
   nat_ip_allocate_option             = "AUTO_ONLY"
   source_subnetwork_ip_ranges_to_nat = var.single_nat_gateway ? "ALL_SUBNETWORKS_ALL_IP_RANGES" : "LIST_OF_SUBNETWORKS"
   project                            = var.gcp_project_id
-  
+
   # Apply NAT to each private subnet if using multiple NAT gateways
   dynamic "subnetwork" {
     for_each = var.single_nat_gateway ? [] : [local.private_subnet_indices[count.index]]
@@ -689,7 +689,7 @@ resource "google_compute_router_nat" "this" {
       source_ip_ranges_to_nat = ["ALL_IP_RANGES"]
     }
   }
-  
+
   # Enable logging
   log_config {
     enable = true
@@ -705,12 +705,12 @@ resource "google_compute_firewall" "egress" {
   name    = "${var.name_prefix}-allow-egress"
   network = google_compute_network.this[0].id
   project = var.gcp_project_id
-  
+
   direction = "EGRESS"
   allow {
     protocol = "all"
   }
-  
+
   destination_ranges = ["0.0.0.0/0"]
 }
 
@@ -720,11 +720,11 @@ resource "google_compute_firewall" "deny_ingress" {
   name    = "${var.name_prefix}-deny-ingress"
   network = google_compute_network.this[0].id
   project = var.gcp_project_id
-  
+
   direction     = "INGRESS"
   priority      = 65534  # Just before the default allow
   source_ranges = ["0.0.0.0/0"]
-  
+
   deny {
     protocol = "all"
   }
@@ -759,17 +759,17 @@ resource "google_access_context_manager_service_perimeter" "vpc_sc" {
   name           = "accessPolicies/${var.gcp_access_policy_id}/servicePerimeters/${var.name_prefix}-perimeter"
   title          = "${var.name_prefix} Perimeter"
   perimeter_type = "PERIMETER_TYPE_REGULAR"
-  
+
   status {
     resources = ["projects/${var.gcp_project_number}"]
-    
+
     restricted_services = var.gcp_restricted_services
-    
+
     vpc_accessible_services {
       enable_restriction = true
       allowed_services   = var.gcp_allowed_services
     }
-    
+
     ingress_policies {
       ingress_from {
         identities = var.gcp_allowed_identities
