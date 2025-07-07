@@ -58,7 +58,7 @@ resource "google_container_cluster" "this" {
   min_master_version       = var.kubernetes_version  # Specific Kubernetes version or null for latest supported
   network                  = var.network             # VPC network for cluster networking
   subnetwork               = var.subnetwork          # Subnet within the VPC for node IP allocation
-  
+
   #--------------------------------------------------------------
   # Node Locations
   # For regional clusters, specifies which zones to deploy nodes in
@@ -69,14 +69,14 @@ resource "google_container_cluster" "this" {
       locations = var.node_locations  # List of zones within the region for node placement
     }
   }
-  
+
   #--------------------------------------------------------------
   # Default Node Pool Configuration
   # We remove the default pool and create custom ones with more options
   #--------------------------------------------------------------
   remove_default_node_pool = true  # Remove the minimal default pool GKE creates automatically
   initial_node_count       = 1     # Required even when removing the default pool
-  
+
   #--------------------------------------------------------------
   # Private Cluster Configuration
   # Controls public/private networking for nodes and control plane
@@ -86,7 +86,7 @@ resource "google_container_cluster" "this" {
     enable_private_endpoint = var.enable_private_endpoint   # When true, API server is only accessible from internal networks
     master_ipv4_cidr_block  = var.master_ipv4_cidr_block    # /28 CIDR for the control plane's private network
   }
-  
+
   #--------------------------------------------------------------
   # Master Authorized Networks
   # Restricts which external networks can access the Kubernetes API
@@ -103,7 +103,7 @@ resource "google_container_cluster" "this" {
       }
     }
   }
-  
+
   #--------------------------------------------------------------
   # Network Policy Configuration
   # Enables Kubernetes NetworkPolicy enforcement using Calico
@@ -112,7 +112,7 @@ resource "google_container_cluster" "this" {
     enabled  = var.enable_network_policy    # When true, enables pod-to-pod network policy
     provider = var.network_policy_provider  # Currently only CALICO is supported
   }
-  
+
   #--------------------------------------------------------------
   # IP Allocation Policy
   # Configures Pod and Service IP ranges for VPC-native clusters
@@ -121,7 +121,7 @@ resource "google_container_cluster" "this" {
     cluster_ipv4_cidr_block  = var.cluster_ipv4_cidr_block   # CIDR for pod IPs, must not overlap with VPC ranges
     services_ipv4_cidr_block = var.services_ipv4_cidr_block  # CIDR for service IPs, must not overlap with VPC or pod ranges
   }
-  
+
   #--------------------------------------------------------------
   # Binary Authorization
   # Enforces deployment of approved container images only
@@ -140,7 +140,7 @@ resource "google_container_cluster" "this" {
   workload_identity_config {
     workload_pool = var.enable_workload_identity ? "${var.project_id}.svc.id.goog" : null  # The Workload Identity Pool
   }
-  
+
   #--------------------------------------------------------------
   # Release Channel Configuration
   # Controls the rate at which clusters receive updates
@@ -148,7 +148,7 @@ resource "google_container_cluster" "this" {
   release_channel {
     channel = var.release_channel  # RAPID, REGULAR, STABLE, or UNSPECIFIED
   }
-  
+
   #--------------------------------------------------------------
   # Maintenance Window Configuration
   # Defines when automatic maintenance can occur
@@ -163,7 +163,7 @@ resource "google_container_cluster" "this" {
       }
     }
   }
-  
+
   #--------------------------------------------------------------
   # Cluster Add-ons Configuration
   # Enables/disables various GKE features and integrations
@@ -172,32 +172,32 @@ resource "google_container_cluster" "this" {
     http_load_balancing {
       disabled = !var.enable_http_load_balancing  # Integrates with Google Cloud Load Balancing
     }
-    
+
     horizontal_pod_autoscaling {
       disabled = !var.enable_horizontal_pod_autoscaling  # Automatically scales pod replicas based on CPU/memory
     }
-    
+
     network_policy_config {
       disabled = !var.enable_network_policy  # Required for network policy enforcement
     }
-    
+
     gcp_filestore_csi_driver_config {
       enabled = var.enable_filestore_csi_driver  # For ReadWriteMany persistent volumes using Filestore
     }
-    
+
     gce_persistent_disk_csi_driver_config {
       enabled = var.enable_gce_persistent_disk_csi_driver  # Enhanced PD volume features (snapshots, resize)
     }
-    
+
     dns_cache_config {
       enabled = var.enable_dns_cache  # NodeLocal DNSCache for improved DNS performance
     }
-    
+
     config_connector_config {
       enabled = var.enable_config_connector  # Kubernetes operator for Google Cloud resources
     }
   }
-  
+
   #--------------------------------------------------------------
   # Logging Configuration
   # Controls which components send logs to Cloud Logging
@@ -205,20 +205,20 @@ resource "google_container_cluster" "this" {
   logging_config {
     enable_components = var.logging_enabled_components  # SYSTEM_COMPONENTS and/or WORKLOADS
   }
-  
+
   #--------------------------------------------------------------
   # Monitoring Configuration
   # Controls which components send metrics to Cloud Monitoring
   #--------------------------------------------------------------
   monitoring_config {
     enable_components = var.monitoring_enabled_components  # SYSTEM_COMPONENTS and/or WORKLOADS
-    
+
     # Managed Prometheus for scalable metrics collection
     managed_prometheus {
       enabled = var.enable_managed_prometheus  # Automatically collects Prometheus metrics
     }
   }
-  
+
   #--------------------------------------------------------------
   # Default Node Configuration
   # This placeholder is required but won't be used
@@ -228,19 +228,19 @@ resource "google_container_cluster" "this" {
     # since remove_default_node_pool = true. Actual node configurations are
     # specified in the node pool resources below.
   }
-  
+
   #--------------------------------------------------------------
   # Networking Mode
   # Sets the cluster to use VPC-native networking (alias IP)
   #--------------------------------------------------------------
   networking_mode = "VPC_NATIVE"  # Recommended for all new clusters for better performance and scalability
-  
+
   #--------------------------------------------------------------
   # Datapath Provider
   # Controls how network traffic is processed
   #--------------------------------------------------------------
   datapath_provider = var.datapath_provider  # ADVANCED_DATAPATH enables GKE Dataplane V2 with eBPF
-  
+
   #--------------------------------------------------------------
   # Vertical Pod Autoscaling
   # Automatically adjusts resource requests/limits
@@ -248,7 +248,7 @@ resource "google_container_cluster" "this" {
   vertical_pod_autoscaling {
     enabled = var.enable_vertical_pod_autoscaling  # When true, VPA can recommend or apply resource changes
   }
-  
+
   #--------------------------------------------------------------
   # Resource Usage Export
   # Sends cluster usage metrics to BigQuery for analysis
@@ -258,13 +258,13 @@ resource "google_container_cluster" "this" {
     content {
       enable_network_egress_metering = var.enable_network_egress_metering             # Track network egress by namespace
       enable_resource_consumption_metering = var.enable_resource_consumption_metering  # Track CPU/memory by namespace
-      
+
       bigquery_destination {
         dataset_id = var.resource_usage_export_dataset_id  # BigQuery dataset to store metrics
       }
     }
   }
-  
+
   #--------------------------------------------------------------
   # Cost Management
   # Enables more granular cost allocation
@@ -275,19 +275,19 @@ resource "google_container_cluster" "this" {
       enabled = true  # Enables cost breakdown by namespace/label
     }
   }
-  
+
   #--------------------------------------------------------------
   # Deletion Protection
   # Prevents accidental cluster deletion
   #--------------------------------------------------------------
   deletion_protection = var.deletion_protection  # When true, requires explicit disabling before deletion
-  
+
   #--------------------------------------------------------------
   # Resource Labels
   # GCP-level labels for organization and billing
   #--------------------------------------------------------------
   resource_labels = var.labels  # Key-value pairs applied to the cluster resource
-  
+
   #--------------------------------------------------------------
   # Operation Timeouts
   # Configures how long to wait for various operations
@@ -297,7 +297,7 @@ resource "google_container_cluster" "this" {
     update = var.cluster_update_timeout  # Timeout for cluster updates
     delete = var.cluster_delete_timeout  # Timeout for cluster deletion
   }
-  
+
   #--------------------------------------------------------------
   # Lifecycle Management
   # Controls how Terraform handles certain changes
@@ -321,7 +321,7 @@ resource "google_container_node_pool" "default" {
   location              = var.regional_cluster ? var.region : var.zone  # Match cluster's location
   project               = var.project_id
   initial_node_count    = var.default_node_count  # Starting number of nodes
-  
+
   #--------------------------------------------------------------
   # Auto-scaling Configuration
   # Automatically adjusts the number of nodes based on demand
@@ -331,7 +331,7 @@ resource "google_container_node_pool" "default" {
     max_node_count  = var.enable_node_auto_scaling ? var.default_max_node_count : null  # Maximum node count when scaling up
     location_policy = var.enable_node_auto_scaling ? var.node_location_policy : null    # BALANCED or ANY for zone selection
   }
-  
+
   #--------------------------------------------------------------
   # Node Management Configuration
   # Controls automatic repair and upgrades
@@ -340,7 +340,7 @@ resource "google_container_node_pool" "default" {
     auto_repair  = var.auto_repair   # Automatically repair unhealthy nodes
     auto_upgrade = var.auto_upgrade  # Automatically upgrade node software
   }
-  
+
   #--------------------------------------------------------------
   # Upgrade Strategy
   # Controls how nodes are upgraded to minimize disruption
@@ -349,7 +349,7 @@ resource "google_container_node_pool" "default" {
     max_surge       = var.max_surge        # Maximum additional nodes during upgrade
     max_unavailable = var.max_unavailable  # Maximum nodes unavailable during upgrade
   }
-  
+
   #--------------------------------------------------------------
   # Node Configuration
   # Defines the VM type and properties for each node
@@ -360,19 +360,19 @@ resource "google_container_node_pool" "default" {
     disk_type       = var.default_disk_type     # pd-standard, pd-balanced, or pd-ssd
     image_type      = var.image_type            # OS image (COS_CONTAINERD, UBUNTU_CONTAINERD)
     service_account = var.service_account       # IAM service account for node VMs
-    
+
     #----------------------------------------------------------
     # OAuth Scopes
     # Controls which Google APIs nodes can access
     #----------------------------------------------------------
     oauth_scopes = var.node_oauth_scopes  # List of API scopes for node VMs
-    
+
     #----------------------------------------------------------
     # Labels
     # Kubernetes labels applied to nodes
     #----------------------------------------------------------
     labels = var.default_node_labels  # Key-value pairs for node selection
-    
+
     #----------------------------------------------------------
     # Taints
     # Kubernetes taints for workload isolation
@@ -385,7 +385,7 @@ resource "google_container_node_pool" "default" {
         effect = taint.value.effect  # NoSchedule, PreferNoSchedule, or NoExecute
       }
     }
-    
+
     #----------------------------------------------------------
     # Local SSD Configuration
     # Adds high-performance local storage to nodes
@@ -396,14 +396,14 @@ resource "google_container_node_pool" "default" {
         count = var.default_local_ssd_count  # Number of 375GB local SSD disks
       }
     }
-    
+
     #----------------------------------------------------------
     # Tags and Metadata
     # GCE-level settings for networking and customization
     #----------------------------------------------------------
     tags     = var.default_node_tags  # Network tags for firewall rules
     metadata = var.node_metadata      # VM metadata key-value pairs
-    
+
     #----------------------------------------------------------
     # Workload Identity Metadata
     # Controls access to the instance metadata server
@@ -411,7 +411,7 @@ resource "google_container_node_pool" "default" {
     workload_metadata_config {
       mode = var.enable_workload_identity ? "GKE_METADATA" : "GCE_METADATA"  # GKE_METADATA needed for Workload Identity
     }
-    
+
     #----------------------------------------------------------
     # Shielded Node Configuration
     # Enhanced security features for node VMs
@@ -420,14 +420,14 @@ resource "google_container_node_pool" "default" {
       enable_secure_boot          = var.enable_secure_boot           # Verifies boot integrity
       enable_integrity_monitoring = var.enable_integrity_monitoring  # Monitors for runtime integrity
     }
-    
+
     #----------------------------------------------------------
     # Spot VM Configuration
     # Uses discounted but preemptible Spot VMs
     #----------------------------------------------------------
     spot = var.default_use_spot_instances  # When true, uses lower-cost preemptible VMs
   }
-  
+
   #--------------------------------------------------------------
   # Operation Timeouts
   # Configures how long to wait for node pool operations
@@ -437,7 +437,7 @@ resource "google_container_node_pool" "default" {
     update = var.node_pool_update_timeout  # Timeout for node pool updates
     delete = var.node_pool_delete_timeout  # Timeout for node pool deletion
   }
-  
+
   #--------------------------------------------------------------
   # Lifecycle Management
   # Controls how Terraform handles node count changes
@@ -460,7 +460,7 @@ resource "google_container_node_pool" "additional" {
   location             = var.regional_cluster ? var.region : var.zone
   project              = var.project_id
   initial_node_count   = each.value.node_count            # Starting number of nodes
-  
+
   #--------------------------------------------------------------
   # Auto-scaling Configuration
   # Each pool can have its own scaling parameters
@@ -470,7 +470,7 @@ resource "google_container_node_pool" "additional" {
     max_node_count  = each.value.max_count != null ? each.value.max_count : null
     location_policy = each.value.location_policy != null ? each.value.location_policy : var.node_location_policy
   }
-  
+
   #--------------------------------------------------------------
   # Node Management Configuration
   # Controls automatic repair and upgrades per pool
@@ -479,7 +479,7 @@ resource "google_container_node_pool" "additional" {
     auto_repair  = each.value.auto_repair != null ? each.value.auto_repair : var.auto_repair
     auto_upgrade = each.value.auto_upgrade != null ? each.value.auto_upgrade : var.auto_upgrade
   }
-  
+
   #--------------------------------------------------------------
   # Upgrade Strategy
   # Controls node replacement strategy during upgrades
@@ -488,7 +488,7 @@ resource "google_container_node_pool" "additional" {
     max_surge       = each.value.max_surge != null ? each.value.max_surge : var.max_surge
     max_unavailable = each.value.max_unavailable != null ? each.value.max_unavailable : var.max_unavailable
   }
-  
+
   #--------------------------------------------------------------
   # Node Configuration
   # Customized VM settings for each specialized pool
@@ -499,19 +499,19 @@ resource "google_container_node_pool" "additional" {
     disk_type       = each.value.disk_type != null ? each.value.disk_type : var.default_disk_type
     image_type      = each.value.image_type != null ? each.value.image_type : var.image_type
     service_account = each.value.service_account != null ? each.value.service_account : var.service_account
-    
+
     #----------------------------------------------------------
     # OAuth Scopes
     # API access permissions for nodes in this pool
     #----------------------------------------------------------
     oauth_scopes = each.value.oauth_scopes != null ? each.value.oauth_scopes : var.node_oauth_scopes
-    
+
     #----------------------------------------------------------
     # Labels
     # Kubernetes labels for node selection
     #----------------------------------------------------------
     labels = each.value.labels  # Pool-specific labels
-    
+
     #----------------------------------------------------------
     # Taints
     # Kubernetes taints to control pod scheduling
@@ -524,7 +524,7 @@ resource "google_container_node_pool" "additional" {
         effect = taint.value.effect
       }
     }
-    
+
     #----------------------------------------------------------
     # Local SSD Configuration
     # High-performance local storage
@@ -535,14 +535,14 @@ resource "google_container_node_pool" "additional" {
         count = each.value.local_ssd_count
       }
     }
-    
+
     #----------------------------------------------------------
     # Tags and Metadata
     # GCE-level configuration
     #----------------------------------------------------------
     tags     = each.value.tags != null ? each.value.tags : var.default_node_tags
     metadata = each.value.metadata != null ? each.value.metadata : var.node_metadata
-    
+
     #----------------------------------------------------------
     # Workload Identity Metadata
     # Controls access to instance metadata
@@ -550,7 +550,7 @@ resource "google_container_node_pool" "additional" {
     workload_metadata_config {
       mode = var.enable_workload_identity ? "GKE_METADATA" : "GCE_METADATA"
     }
-    
+
     #----------------------------------------------------------
     # Shielded Node Configuration
     # Enhanced security features
@@ -559,14 +559,14 @@ resource "google_container_node_pool" "additional" {
       enable_secure_boot          = each.value.enable_secure_boot != null ? each.value.enable_secure_boot : var.enable_secure_boot
       enable_integrity_monitoring = each.value.enable_integrity_monitoring != null ? each.value.enable_integrity_monitoring : var.enable_integrity_monitoring
     }
-    
+
     #----------------------------------------------------------
     # Spot VM Configuration
     # Cost-saving but preemptible instances
     #----------------------------------------------------------
     spot = each.value.spot != null ? each.value.spot : false
   }
-  
+
   #--------------------------------------------------------------
   # Operation Timeouts
   # Configures wait times for operations
@@ -576,7 +576,7 @@ resource "google_container_node_pool" "additional" {
     update = var.node_pool_update_timeout
     delete = var.node_pool_delete_timeout
   }
-  
+
   #--------------------------------------------------------------
   # Lifecycle Management
   # Handles autoscaling-driven changes

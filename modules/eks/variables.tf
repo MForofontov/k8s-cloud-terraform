@@ -2,7 +2,7 @@
 # Amazon EKS (Elastic Kubernetes Service) Module Variables
 #
 # This file defines all configuration options for AWS EKS clusters. Variables
-# are organized into logical sections and include detailed descriptions, 
+# are organized into logical sections and include detailed descriptions,
 # defaults, and usage guidance.
 #
 # The module supports both managed node groups and Fargate profiles, with

@@ -74,17 +74,17 @@ resource "azurerm_kubernetes_cluster" "this" {
     vm_size              = var.default_node_pool_vm_size  # VM instance type
     vnet_subnet_id       = var.subnet_id  # VNet integration for CNI networking
     zones                = var.availability_zones  # For zone redundancy
-    
+
     # Node count configuration with autoscaling support
     node_count           = var.enable_auto_scaling ? null : var.default_node_pool_node_count
     auto_scaling_enabled = var.enable_auto_scaling  # Dynamically adjust node count
     min_count            = var.enable_auto_scaling ? var.default_node_pool_min_count : null
     max_count            = var.enable_auto_scaling ? var.default_node_pool_max_count : null
-    
+
     # Node storage configuration
     os_disk_size_gb      = var.os_disk_size_gb  # Root disk size for containers and OS
     os_disk_type         = var.os_disk_type  # Managed (SSD) or Ephemeral
-    
+
     node_labels          = var.default_node_pool_labels  # Kubernetes labels for node selection
     tags                 = var.tags  # Azure resource tags for the node VMs
   }
@@ -186,10 +186,10 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
   name                       = "${var.cluster_name}-diagnostic-settings"
   target_resource_id         = azurerm_kubernetes_cluster.this.id  # AKS cluster
   log_analytics_workspace_id = azurerm_log_analytics_workspace.aks[0].id  # Destination
-  
+
   # Uses dedicated tables in Log Analytics for better query performance
   log_analytics_destination_type = "Dedicated"
-  
+
   # By default, this captures all log categories for the AKS cluster
 }
 
@@ -202,7 +202,7 @@ resource "azurerm_monitor_diagnostic_setting" "container_insights" {
   name                       = "${var.cluster_name}-container-insights"
   target_resource_id         = azurerm_kubernetes_cluster.this.id  # AKS cluster
   log_analytics_workspace_id = azurerm_log_analytics_workspace.aks[0].id  # Destination
-  
+
   # This enables the Container Insights solution which provides:
   # - Container performance metrics
   # - Pod health monitoring
@@ -219,26 +219,26 @@ resource "azurerm_kubernetes_cluster_node_pool" "additional" {
   name                  = each.key  # Use the map key as node pool name
   kubernetes_cluster_id = azurerm_kubernetes_cluster.this.id  # Reference to AKS cluster
   vm_size               = each.value.vm_size  # VM instance type for this pool
-  
+
   # Node count configuration with autoscaling support
   node_count            = each.value.min_count != null ? null : each.value.node_count  # Static count
   auto_scaling_enabled  = each.value.min_count != null ? true : false  # Enable if min_count provided
   min_count             = each.value.min_count  # Minimum for autoscaling
   max_count             = each.value.max_count  # Maximum for autoscaling
-  
+
   # Node configuration
   os_disk_size_gb       = each.value.os_disk_size_gb  # Root disk size
   os_disk_type          = each.value.os_disk_type  # Disk performance tier
   vnet_subnet_id        = var.subnet_id  # Same subnet as default pool
   zones                 = var.availability_zones  # Same zones as default pool
-  
+
   # Kubernetes settings
   node_labels           = each.value.node_labels  # For node selection in pod specs
   mode                  = each.value.mode  # User or System mode
-  
+
   # Resource tags
   tags                  = var.tags  # Consistent tagging
-  
+
   # These node pools can be used for:
   # - Workload isolation (e.g., separating frontend from backend)
   # - Special hardware requirements (e.g., GPU nodes)
@@ -252,12 +252,12 @@ resource "azurerm_kubernetes_cluster_node_pool" "additional" {
 resource "local_file" "kubeconfig" {
   content  = azurerm_kubernetes_cluster.this.kube_config_raw  # Credentials from AKS
   filename = "${path.module}/kubeconfig_${var.cluster_name}"  # Named with cluster name
-  
+
   # This file contains:
   # - API server endpoint
   # - Authentication credentials
   # - Cluster CA certificate
-  # 
+  #
   # Set the KUBECONFIG environment variable to this path to use kubectl:
   # export KUBECONFIG=/path/to/kubeconfig_clustername
 }
