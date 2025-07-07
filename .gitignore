@@ -1,0 +1,13 @@
+# Terraform state and modules
+.terraform/
+*.tfstate
+*.tfstate.*
+
+# Crash logs
+crash.log
+
+# Terraform dependency lock file
+.terraform.lock.hcl
+
+# Generated kubeconfig files
+**/kubeconfig*
