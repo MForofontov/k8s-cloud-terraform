@@ -11,7 +11,7 @@
 variable "cloud_provider" {
   description = "Cloud provider to use (aws, azure, gcp)"
   type        = string
-  
+
   validation {
     condition     = contains(["aws", "azure", "gcp"], var.cloud_provider)
     error_message = "The cloud_provider value must be one of: aws, azure, gcp."
@@ -204,7 +204,7 @@ variable "gcp_routing_mode" {
   description = "GCP network routing mode (REGIONAL or GLOBAL)"
   type        = string
   default     = "REGIONAL"
-  
+
   validation {
     condition     = contains(["REGIONAL", "GLOBAL"], var.gcp_routing_mode)
     error_message = "The gcp_routing_mode value must be one of: REGIONAL, GLOBAL."

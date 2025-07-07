@@ -1,7 +1,7 @@
 #==============================================================================
 # Kubernetes Addons Module
 #
-# This module provides a unified interface for deploying common operational 
+# This module provides a unified interface for deploying common operational
 # add-ons to Kubernetes clusters using Helm charts. It follows a consistent
 # pattern where each addon:
 #   - Can be enabled/disabled via a boolean flag
@@ -38,26 +38,26 @@ locals {
     medium = 600
     large  = 900
   }
-  
+
   # Default timeout based on cluster context or medium if not provided
   default_timeout = try(local.timeouts[var.cluster_context.cluster_size], local.timeouts["medium"])
-  
+
   # Default storage classes by cloud provider
   default_storage_class = {
     aws   = "gp2"
     azure = "managed-premium"
     gcp   = "standard"
   }
-  
+
   # Selected storage class based on cloud provider or user override
   storage_class = var.storage_class != null ? var.storage_class : try(
-    local.default_storage_class[var.cluster_context.cloud_provider], 
+    local.default_storage_class[var.cluster_context.cloud_provider],
     "standard"
   )
-  
+
   # Determine if running in a production environment
   is_production = try(var.cluster_context.is_production, false)
-  
+
   # High availability settings based on environment
   high_availability = {
     enabled = local.is_production
@@ -74,19 +74,19 @@ locals {
 resource "helm_release" "metrics_server" {
   # Only deploy if explicitly enabled
   count       = var.enable_metrics_server ? 1 : 0
-  
+
   # Chart details with fallbacks to default values if not specified
   name        = lookup(var.metrics_server, "name", "metrics-server")
   chart       = lookup(var.metrics_server, "chart", "metrics-server")
   repository  = lookup(var.metrics_server, "repository", "https://kubernetes-sigs.github.io/metrics-server/")
   version     = lookup(var.metrics_server, "chart_version", null)  # null = latest version
-  
+
   # Deployment configuration
   namespace   = lookup(var.metrics_server, "namespace", "kube-system")  # Uses kube-system by default
   max_history = lookup(var.metrics_server, "max_history", 10)  # Keep history of 10 releases for rollbacks
   timeout     = lookup(var.metrics_server, "timeout", local.default_timeout)
   create_namespace = lookup(var.metrics_server, "create_namespace", false)  # kube-system exists by default
-  
+
   # Deployment safety options
   atomic          = lookup(var.metrics_server, "atomic", true)
   cleanup_on_fail = lookup(var.metrics_server, "cleanup_on_fail", true)
@@ -126,7 +126,7 @@ resource "helm_release" "cluster_autoscaler" {
   max_history = lookup(var.cluster_autoscaler, "max_history", 10)
   timeout     = lookup(var.cluster_autoscaler, "timeout", local.default_timeout)
   create_namespace = lookup(var.cluster_autoscaler, "create_namespace", false)
-  
+
   # Deployment safety options
   atomic          = lookup(var.cluster_autoscaler, "atomic", true)
   cleanup_on_fail = lookup(var.cluster_autoscaler, "cleanup_on_fail", true)
@@ -165,18 +165,18 @@ resource "helm_release" "karpenter" {
   max_history = lookup(var.karpenter, "max_history", 10)
   timeout     = lookup(var.karpenter, "timeout", local.default_timeout)
   create_namespace = lookup(var.karpenter, "create_namespace", true)
-  
+
   # Deployment safety options
   atomic          = lookup(var.karpenter, "atomic", true)
   cleanup_on_fail = lookup(var.karpenter, "cleanup_on_fail", true)
   wait            = lookup(var.karpenter, "wait", true)
-  
+
   # Configure cloud provider-specific settings (AWS, Azure, GCP)
   values = [
     lookup(var.karpenter, "values", "") != "" ? file(var.karpenter.values) : "",
     yamlencode(lookup(var.karpenter, "set_values", {}))
   ]
-  
+
   dynamic "set" {
     for_each = lookup(var.karpenter, "set", {})
     content {
@@ -203,7 +203,7 @@ resource "helm_release" "nginx_ingress" {
   max_history = lookup(var.nginx_ingress, "max_history", 10)
   timeout     = lookup(var.nginx_ingress, "timeout", local.default_timeout)
   create_namespace = lookup(var.nginx_ingress, "create_namespace", true)
-  
+
   # Deployment safety options
   atomic          = lookup(var.nginx_ingress, "atomic", true)
   cleanup_on_fail = lookup(var.nginx_ingress, "cleanup_on_fail", true)
@@ -280,7 +280,7 @@ resource "helm_release" "cert_manager" {
   max_history = lookup(var.cert_manager, "max_history", 10)
   timeout     = lookup(var.cert_manager, "timeout", local.default_timeout)
   create_namespace = lookup(var.cert_manager, "create_namespace", true)
-  
+
   # Deployment safety options
   atomic          = lookup(var.cert_manager, "atomic", true)
   cleanup_on_fail = lookup(var.cert_manager, "cleanup_on_fail", true)
@@ -316,7 +316,7 @@ resource "helm_release" "cert_manager" {
 # Wait for cert-manager webhook to be available before deploying dependent resources
 resource "null_resource" "wait_for_cert_manager_webhook" {
   count = var.enable_cert_manager ? 1 : 0
-  
+
   provisioner "local-exec" {
     command = <<-EOT
       kubectl wait --for=condition=Available deployment/cert-manager-webhook \
@@ -325,7 +325,7 @@ resource "null_resource" "wait_for_cert_manager_webhook" {
         -n ${helm_release.cert_manager[0].namespace} --timeout=180s
     EOT
   }
-  
+
   depends_on = [helm_release.cert_manager]
 }
 
@@ -347,7 +347,7 @@ resource "helm_release" "external_dns" {
   max_history = lookup(var.external_dns, "max_history", 10)
   timeout     = lookup(var.external_dns, "timeout", local.default_timeout)
   create_namespace = lookup(var.external_dns, "create_namespace", true)
-  
+
   # Deployment safety options
   atomic          = lookup(var.external_dns, "atomic", true)
   cleanup_on_fail = lookup(var.external_dns, "cleanup_on_fail", true)
@@ -372,7 +372,7 @@ resource "helm_release" "external_dns" {
       value = set.value
     }
   }
-  
+
   # Ensure cert-manager is ready if both are enabled
   depends_on = [
     helm_release.cert_manager,
@@ -398,11 +398,11 @@ resource "helm_release" "prometheus_stack" {
   version     = lookup(var.prometheus_stack, "chart_version", null)
   namespace   = lookup(var.prometheus_stack, "namespace", "monitoring")
   max_history = lookup(var.prometheus_stack, "max_history", 10)
-  timeout     = lookup(var.prometheus_stack, "timeout", 
-                  lookup(var.prometheus_stack, "timeout", 
+  timeout     = lookup(var.prometheus_stack, "timeout",
+                  lookup(var.prometheus_stack, "timeout",
                     local.is_production ? local.timeouts["large"] : local.default_timeout))
   create_namespace = lookup(var.prometheus_stack, "create_namespace", true)
-  
+
   # Deployment safety options
   atomic          = lookup(var.prometheus_stack, "atomic", true)
   cleanup_on_fail = lookup(var.prometheus_stack, "cleanup_on_fail", true)
@@ -425,8 +425,8 @@ resource "helm_release" "prometheus_stack" {
                   resources = {
                     requests = {
                       storage = lookup(
-                        lookup(var.prometheus_stack, "storage", {}), 
-                        "size", 
+                        lookup(var.prometheus_stack, "storage", {}),
+                        "size",
                         local.is_production ? "100Gi" : "50Gi"
                       )
                     }
@@ -499,7 +499,7 @@ resource "helm_release" "fluent_bit" {
   max_history = lookup(var.fluent_bit, "max_history", 10)
   timeout     = lookup(var.fluent_bit, "timeout", local.default_timeout)
   create_namespace = lookup(var.fluent_bit, "create_namespace", true)
-  
+
   # Deployment safety options
   atomic          = lookup(var.fluent_bit, "atomic", true)
   cleanup_on_fail = lookup(var.fluent_bit, "cleanup_on_fail", true)
@@ -555,7 +555,7 @@ resource "helm_release" "argocd" {
   max_history = lookup(var.argocd, "max_history", 10)
   timeout     = lookup(var.argocd, "timeout", local.default_timeout)
   create_namespace = lookup(var.argocd, "create_namespace", true)
-  
+
   # Deployment safety options
   atomic          = lookup(var.argocd, "atomic", true)
   cleanup_on_fail = lookup(var.argocd, "cleanup_on_fail", true)
@@ -618,7 +618,7 @@ resource "helm_release" "velero" {
   max_history = lookup(var.velero, "max_history", 10)
   timeout     = lookup(var.velero, "timeout", local.default_timeout)
   create_namespace = lookup(var.velero, "create_namespace", true)
-  
+
   # Deployment safety options
   atomic          = lookup(var.velero, "atomic", true)
   cleanup_on_fail = lookup(var.velero, "cleanup_on_fail", true)
@@ -676,7 +676,7 @@ resource "helm_release" "sealed_secrets" {
   max_history = lookup(var.sealed_secrets, "max_history", 10)
   timeout     = lookup(var.sealed_secrets, "timeout", local.default_timeout)
   create_namespace = lookup(var.sealed_secrets, "create_namespace", false)
-  
+
   # Deployment safety options
   atomic          = lookup(var.sealed_secrets, "atomic", true)
   cleanup_on_fail = lookup(var.sealed_secrets, "cleanup_on_fail", true)
@@ -743,7 +743,7 @@ resource "helm_release" "istio_base" {
   max_history = lookup(var.istio, "max_history", 10)
   timeout     = lookup(var.istio, "timeout", local.default_timeout)
   create_namespace = lookup(var.istio, "create_namespace", true)
-  
+
   # Deployment safety options
   atomic          = lookup(var.istio, "atomic", true)
   cleanup_on_fail = lookup(var.istio, "cleanup_on_fail", true)
@@ -767,11 +767,11 @@ resource "helm_release" "istio_base" {
 # Wait for Istio CRDs to be available
 resource "null_resource" "wait_for_istio_crds" {
   count = var.enable_istio ? 1 : 0
-  
+
   provisioner "local-exec" {
     command = "kubectl wait --for=condition=Established crd/virtualservices.networking.istio.io --timeout=90s"
   }
-  
+
   depends_on = [helm_release.istio_base]
 }
 
@@ -786,7 +786,7 @@ resource "helm_release" "istiod" {
   max_history = lookup(var.istio, "max_history", 10)
   timeout     = lookup(var.istio, "timeout", local.default_timeout)
   create_namespace = false  # Already created by istio-base
-  
+
   # Deployment safety options
   atomic          = lookup(var.istio, "atomic", true)
   cleanup_on_fail = lookup(var.istio, "cleanup_on_fail", true)
@@ -841,7 +841,7 @@ resource "helm_release" "istio_ingress" {
   max_history = lookup(var.istio, "max_history", 10)
   timeout     = lookup(var.istio, "timeout", local.default_timeout)
   create_namespace = false  # Already created by istio-base
-  
+
   # Deployment safety options
   atomic          = lookup(var.istio, "atomic", true)
   cleanup_on_fail = lookup(var.istio, "cleanup_on_fail", true)
@@ -904,7 +904,7 @@ resource "helm_release" "kyverno" {
   max_history = lookup(var.kyverno, "max_history", 10)
   timeout     = lookup(var.kyverno, "timeout", local.default_timeout)
   create_namespace = lookup(var.kyverno, "create_namespace", true)
-  
+
   # Deployment safety options
   atomic          = lookup(var.kyverno, "atomic", true)
   cleanup_on_fail = lookup(var.kyverno, "cleanup_on_fail", true)
@@ -959,7 +959,7 @@ resource "helm_release" "crossplane" {
   max_history = lookup(var.crossplane, "max_history", 10)
   timeout     = lookup(var.crossplane, "timeout", local.default_timeout)
   create_namespace = lookup(var.crossplane, "create_namespace", true)
-  
+
   # Deployment safety options
   atomic          = lookup(var.crossplane, "atomic", true)
   cleanup_on_fail = lookup(var.crossplane, "cleanup_on_fail", true)
@@ -998,7 +998,7 @@ resource "helm_release" "aws_load_balancer_controller" {
   max_history = lookup(var.aws_load_balancer_controller, "max_history", 10)
   timeout     = lookup(var.aws_load_balancer_controller, "timeout", local.default_timeout)
   create_namespace = lookup(var.aws_load_balancer_controller, "create_namespace", false)
-  
+
   # Deployment safety options
   atomic          = lookup(var.aws_load_balancer_controller, "atomic", true)
   cleanup_on_fail = lookup(var.aws_load_balancer_controller, "cleanup_on_fail", true)

@@ -1,7 +1,7 @@
 #==============================================================================
 # GKE Cluster Variables
 #
-# This file defines all configuration options for Google Kubernetes Engine 
+# This file defines all configuration options for Google Kubernetes Engine
 # clusters. Variables are organized into logical sections and include detailed
 # descriptions, defaults, and usage guidance.
 #==============================================================================

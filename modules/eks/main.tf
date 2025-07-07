@@ -157,7 +157,7 @@ resource "aws_eks_node_group" "default" {
   capacity_type  = var.node_capacity_type   # ON_DEMAND or SPOT
   disk_size      = var.node_disk_size       # Root EBS volume size in GB
   labels         = var.node_labels          # Kubernetes labels for nodes
-  
+
   #--------------------------------------------------------------
   # Taints
   # Controls pod scheduling restrictions
@@ -231,7 +231,7 @@ resource "aws_eks_node_group" "additional" {
   capacity_type  = each.value.capacity_type   # ON_DEMAND for critical, SPOT for batch
   disk_size      = each.value.disk_size       # Size based on workload requirements
   labels         = each.value.labels          # Labels for node selection
-  
+
   #--------------------------------------------------------------
   # Taints
   # Used for workload isolation
@@ -319,9 +319,9 @@ resource "aws_eks_fargate_profile" "this" {
 #==============================================================================
 resource "aws_iam_role" "fargate_pod_execution" {
   count = var.create_fargate_pod_execution_role ? 1 : 0
-  
+
   name = "${var.cluster_name}-fargate-pod-execution-role"
-  
+
   #--------------------------------------------------------------
   # Trust Relationship
   # Allows Fargate to assume this role
@@ -359,11 +359,11 @@ data "tls_certificate" "eks" {
 
 resource "aws_iam_openid_connect_provider" "eks" {
   count = var.enable_irsa ? 1 : 0
-  
+
   client_id_list  = ["sts.amazonaws.com"]  # Authorized client for token exchange
   thumbprint_list = [data.tls_certificate.eks.certificates[0].sha1_fingerprint]  # Certificate validation
   url             = aws_eks_cluster.this.identity[0].oidc[0].issuer  # OIDC issuer URL
-  
+
   tags = merge(
     var.tags,
     {
@@ -382,12 +382,12 @@ resource "aws_iam_openid_connect_provider" "eks" {
 #--------------------------------------------------------------
 resource "aws_eks_addon" "coredns" {
   count = var.enable_coredns ? 1 : 0
-  
+
   cluster_name      = aws_eks_cluster.this.name
   addon_name        = "coredns"
   addon_version     = var.coredns_version  # Specific version or null for default
   preserve          = var.addon_preserve   # Whether to keep resources on delete
-  
+
   tags = var.tags
 }
 
@@ -397,12 +397,12 @@ resource "aws_eks_addon" "coredns" {
 #--------------------------------------------------------------
 resource "aws_eks_addon" "kube_proxy" {
   count = var.enable_kube_proxy ? 1 : 0
-  
+
   cluster_name      = aws_eks_cluster.this.name
   addon_name        = "kube-proxy"
   addon_version     = var.kube_proxy_version
   preserve          = var.addon_preserve
-  
+
   tags = var.tags
 }
 
@@ -412,15 +412,15 @@ resource "aws_eks_addon" "kube_proxy" {
 #--------------------------------------------------------------
 resource "aws_eks_addon" "vpc_cni" {
   count = var.enable_vpc_cni ? 1 : 0
-  
+
   cluster_name      = aws_eks_cluster.this.name
   addon_name        = "vpc-cni"
   addon_version     = var.vpc_cni_version
   preserve          = var.addon_preserve
-  
+
   # Use IRSA if enabled for fine-grained permissions
   service_account_role_arn = var.enable_irsa && var.create_vpc_cni_service_account_role ? aws_iam_role.vpc_cni[0].arn : null
-  
+
   tags = var.tags
 }
 
@@ -430,9 +430,9 @@ resource "aws_eks_addon" "vpc_cni" {
 #--------------------------------------------------------------
 resource "aws_iam_role" "vpc_cni" {
   count = var.enable_irsa && var.create_vpc_cni_service_account_role ? 1 : 0
-  
+
   name = "${var.cluster_name}-vpc-cni-irsa"
-  
+
   #--------------------------------------------------------------
   # Trust Relationship
   # Allows specific service account to assume this role
@@ -454,7 +454,7 @@ resource "aws_iam_role" "vpc_cni" {
       }
     ]
   })
-  
+
   tags = var.tags
 }
 
@@ -470,15 +470,15 @@ resource "aws_iam_role_policy_attachment" "vpc_cni" {
 #--------------------------------------------------------------
 resource "aws_eks_addon" "aws_ebs_csi_driver" {
   count = var.enable_aws_ebs_csi_driver ? 1 : 0
-  
+
   cluster_name      = aws_eks_cluster.this.name
   addon_name        = "aws-ebs-csi-driver"
   addon_version     = var.aws_ebs_csi_driver_version
   preserve          = var.addon_preserve
-  
+
   # Use IRSA if enabled for fine-grained permissions
   service_account_role_arn = var.enable_irsa && var.create_ebs_csi_driver_service_account_role ? aws_iam_role.ebs_csi_driver[0].arn : null
-  
+
   tags = var.tags
 }
 
@@ -488,9 +488,9 @@ resource "aws_eks_addon" "aws_ebs_csi_driver" {
 #--------------------------------------------------------------
 resource "aws_iam_role" "ebs_csi_driver" {
   count = var.enable_irsa && var.create_ebs_csi_driver_service_account_role ? 1 : 0
-  
+
   name = "${var.cluster_name}-ebs-csi-driver-irsa"
-  
+
   #--------------------------------------------------------------
   # Trust Relationship
   # Allows specific service account to assume this role
@@ -512,7 +512,7 @@ resource "aws_iam_role" "ebs_csi_driver" {
       }
     ]
   })
-  
+
   tags = var.tags
 }
 
@@ -528,11 +528,11 @@ resource "aws_iam_role_policy_attachment" "ebs_csi_driver" {
 #==============================================================================
 resource "aws_cloudwatch_log_group" "eks" {
   count = length(var.enabled_cluster_log_types) > 0 ? 1 : 0
-  
+
   name              = "/aws/eks/${var.cluster_name}/cluster"  # Standard log group naming
   retention_in_days = var.cloudwatch_log_retention_days       # How long to keep logs
   kms_key_id        = var.cloudwatch_log_kms_key_id           # Optional encryption
-  
+
   tags = var.tags
 }
 
@@ -546,10 +546,10 @@ resource "aws_cloudwatch_log_group" "eks" {
 #--------------------------------------------------------------
 resource "aws_iam_role" "cluster" {
   count = var.create_iam_roles && var.cluster_role_arn == null ? 1 : 0
-  
+
   name               = "${var.cluster_name}-eks-cluster-role"
   assume_role_policy = data.aws_iam_policy_document.eks_assume_role_policy.json  # Trust policy
-  
+
   tags = var.tags
 }
 
@@ -559,10 +559,10 @@ resource "aws_iam_role" "cluster" {
 #--------------------------------------------------------------
 resource "aws_iam_role" "node" {
   count = var.create_iam_roles && var.node_role_arn == null ? 1 : 0
-  
+
   name               = "${var.cluster_name}-eks-node-role"
   assume_role_policy = data.aws_iam_policy_document.ec2_assume_role_policy.json  # Trust policy
-  
+
   tags = var.tags
 }
 
