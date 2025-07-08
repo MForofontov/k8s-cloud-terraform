@@ -33,6 +33,7 @@ terraform {
       version = "~> 4.1.0"   # Used for OIDC provider certificate handling
     }
   }
+  required_version = ">= 1.0.0"
 }
 
 #==============================================================================

@@ -17,6 +17,10 @@
 # Provider Configuration
 # Specifies the required providers and versions for this environment
 #==============================================================================
+terraform {
+  required_version = ">= 1.0.0"
+}
+
 
 provider "google" {
   project = var.gcp_project_id
