@@ -34,6 +34,7 @@ terraform {
       version = "~> 2.48.0"  # For Azure AD integration and RBAC
     }
   }
+  required_version = ">= 1.0.0"
 }
 
 #==============================================================================

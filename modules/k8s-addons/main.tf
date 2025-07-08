@@ -28,6 +28,7 @@ terraform {
       version = ">= 1.19.0"  # Used for applying custom resources when needed
     }
   }
+  required_version = ">= 1.0.0"
 }
 
 # Local variables for dynamic resource sizing and cloud provider optimizations

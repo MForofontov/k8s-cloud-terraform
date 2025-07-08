@@ -32,6 +32,7 @@ terraform {
       version = "~> 2.37.1"  # For generating kubeconfig and potential future K8s resource management
     }
   }
+  required_version = ">= 1.0.0"
 }
 
 #==============================================================================
