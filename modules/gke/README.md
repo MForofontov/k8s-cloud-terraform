@@ -65,7 +65,7 @@ module "gke" {
   # Cluster configuration
   regional_cluster   = true
   node_locations     = ["us-central1-a", "us-central1-b", "us-central1-c"]
-  kubernetes_version = "1.28"
+  kubernetes_version = "1.29"
   release_channel    = "REGULAR"
 
   # Networking

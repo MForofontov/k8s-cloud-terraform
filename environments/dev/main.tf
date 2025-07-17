@@ -66,7 +66,7 @@ module "gke" {
 
   # Basic cluster configuration
   regional_cluster   = true
-  kubernetes_version = "1.28"
+  kubernetes_version = "1.29"
   release_channel    = "REGULAR"
 
   # Default node pool
