@@ -235,7 +235,7 @@ variable "default_max_node_count" {
 #==============================================================================
 variable "node_pools" {
   description = "Map of additional node pool configurations. Use this to create specialized pools for different workloads (e.g., compute-intensive, memory-intensive, GPU). Each pool can have unique machine types, scaling parameters, and node configurations."
-  type        = map(object({
+  type = map(object({
     machine_type    = string
     node_count      = number
     min_count       = optional(number)
@@ -246,22 +246,22 @@ variable "node_pools" {
     service_account = optional(string)
     oauth_scopes    = optional(list(string))
     labels          = optional(map(string), {})
-    taints          = optional(list(object({
+    taints = optional(list(object({
       key    = string
       value  = string
       effect = string
     })), [])
-    local_ssd_count = optional(number)
-    tags            = optional(list(string))
-    metadata        = optional(map(string))
-    enable_secure_boot = optional(bool)
+    local_ssd_count             = optional(number)
+    tags                        = optional(list(string))
+    metadata                    = optional(map(string))
+    enable_secure_boot          = optional(bool)
     enable_integrity_monitoring = optional(bool)
-    spot            = optional(bool)
-    auto_repair     = optional(bool)
-    auto_upgrade    = optional(bool)
-    max_surge       = optional(number)
-    max_unavailable = optional(number)
-    location_policy = optional(string)
+    spot                        = optional(bool)
+    auto_repair                 = optional(bool)
+    auto_upgrade                = optional(bool)
+    max_surge                   = optional(number)
+    max_unavailable             = optional(number)
+    location_policy             = optional(string)
   }))
   default = {}
 }
@@ -285,7 +285,7 @@ variable "service_account" {
 variable "node_oauth_scopes" {
   description = "OAuth scopes granted to the node service account. These determine which Google Cloud APIs nodes can access. The defaults allow logging, monitoring, and read-only storage access."
   type        = list(string)
-  default     = [
+  default = [
     "https://www.googleapis.com/auth/logging.write",
     "https://www.googleapis.com/auth/monitoring",
     "https://www.googleapis.com/auth/devstorage.read_only"

@@ -36,9 +36,9 @@ terraform {
 #------------------------------------------------------------------------------
 locals {
   # Provider detection flags
-  is_aws    = var.cloud_provider == "aws"
-  is_azure  = var.cloud_provider == "azure"
-  is_gcp    = var.cloud_provider == "gcp"
+  is_aws   = var.cloud_provider == "aws"
+  is_azure = var.cloud_provider == "azure"
+  is_gcp   = var.cloud_provider == "gcp"
 
   # Network CIDR handling
   vpc_cidr = coalesce(var.vpc_cidr, "10.0.0.0/16")
@@ -48,7 +48,7 @@ locals {
 
   # Automated subnet CIDR calculation for both IPv4 and IPv6
   # Divides VPC CIDR into equal subnets based on subnet count
-  subnet_count = length(var.subnet_names) > 0 ? length(var.subnet_names) : 4
+  subnet_count   = length(var.subnet_names) > 0 ? length(var.subnet_names) : 4
   subnet_newbits = ceil(log(local.subnet_count, 2))
 
   # Calculate subnet CIDRs if not explicitly provided
@@ -64,15 +64,15 @@ locals {
   ]
 
   # Default subnet indices
-  public_subnet_indices = length(var.public_subnet_indices) > 0 ? var.public_subnet_indices : [0, 1]
+  public_subnet_indices  = length(var.public_subnet_indices) > 0 ? var.public_subnet_indices : [0, 1]
   private_subnet_indices = length(var.private_subnet_indices) > 0 ? var.private_subnet_indices : [2, 3]
 
   # Enhanced tagging with standard keys
   common_tags = merge({
-    "Environment"     = var.environment
-    "ManagedBy"       = "terraform"
-    "Module"          = "networking"
-    "CloudProvider"   = var.cloud_provider
+    "Environment"   = var.environment
+    "ManagedBy"     = "terraform"
+    "Module"        = "networking"
+    "CloudProvider" = var.cloud_provider
   }, var.tags)
 
   # Service endpoint configurations
@@ -106,21 +106,21 @@ resource "aws_vpc" "this" {
 }
 
 resource "aws_subnet" "this" {
-  count                           = local.is_aws ? length(local.subnet_cidrs) : 0
-  vpc_id                          = aws_vpc.this[0].id
-  cidr_block                      = local.subnet_cidrs[count.index]
-  availability_zone               = length(var.availability_zones) > count.index ? var.availability_zones[count.index] : null
-  map_public_ip_on_launch         = contains(local.public_subnet_indices, count.index) ? true : false
+  count                   = local.is_aws ? length(local.subnet_cidrs) : 0
+  vpc_id                  = aws_vpc.this[0].id
+  cidr_block              = local.subnet_cidrs[count.index]
+  availability_zone       = length(var.availability_zones) > count.index ? var.availability_zones[count.index] : null
+  map_public_ip_on_launch = contains(local.public_subnet_indices, count.index) ? true : false
 
   # Configure IPv6 if enabled
   ipv6_cidr_block                 = local.enable_ipv6 ? cidrsubnet(aws_vpc.this[0].ipv6_cidr_block, 8, count.index) : null
   assign_ipv6_address_on_creation = local.enable_ipv6 && contains(local.public_subnet_indices, count.index) ? true : false
 
   tags = merge(local.common_tags, {
-    Name = local.subnet_names[count.index]
+    Name                              = local.subnet_names[count.index]
     "kubernetes.io/role/internal-elb" = contains(local.private_subnet_indices, count.index) ? "1" : "0"
     "kubernetes.io/role/elb"          = contains(local.public_subnet_indices, count.index) ? "1" : "0"
-    "Tier" = contains(local.public_subnet_indices, count.index) ? "public" : "private"
+    "Tier"                            = contains(local.public_subnet_indices, count.index) ? "public" : "private"
   })
 }
 
@@ -583,9 +583,9 @@ resource "azurerm_network_watcher_flow_log" "this" {
   resource_group_name  = azurerm_resource_group.this[0].name
   name                 = "${var.name_prefix}-flow-log"
 
-  target_resource_id   = azurerm_network_security_group.this[0].id
-  storage_account_id        = azurerm_storage_account.flow_logs[0].id
-  enabled                   = true
+  target_resource_id = azurerm_network_security_group.this[0].id
+  storage_account_id = azurerm_storage_account.flow_logs[0].id
+  enabled            = true
 
   retention_policy {
     enabled = true
@@ -615,7 +615,7 @@ resource "google_compute_network" "this" {
   project                 = var.gcp_project_id
 
   # Enable global routing if specified
-  routing_mode            = var.gcp_routing_mode
+  routing_mode = var.gcp_routing_mode
 
   # Enable dual-stack IPv6 if specified
   dynamic "ipv6_access_type" {
@@ -628,12 +628,12 @@ resource "google_compute_network" "this" {
 }
 
 resource "google_compute_subnetwork" "this" {
-  count          = local.is_gcp ? length(local.subnet_cidrs) : 0
-  name           = local.subnet_names[count.index]
-  ip_cidr_range  = local.subnet_cidrs[count.index]
-  region         = var.gcp_region
-  network        = google_compute_network.this[0].id
-  project        = var.gcp_project_id
+  count         = local.is_gcp ? length(local.subnet_cidrs) : 0
+  name          = local.subnet_names[count.index]
+  ip_cidr_range = local.subnet_cidrs[count.index]
+  region        = var.gcp_region
+  network       = google_compute_network.this[0].id
+  project       = var.gcp_project_id
 
   # Enable private Google access for private subnets
   private_ip_google_access = contains(local.private_subnet_indices, count.index) ? true : false
@@ -723,7 +723,7 @@ resource "google_compute_firewall" "deny_ingress" {
   project = var.gcp_project_id
 
   direction     = "INGRESS"
-  priority      = 65534  # Just before the default allow
+  priority      = 65534 # Just before the default allow
   source_ranges = ["0.0.0.0/0"]
 
   deny {

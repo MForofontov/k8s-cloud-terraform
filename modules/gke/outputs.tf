@@ -78,7 +78,7 @@ output "cluster_pod_ipv4_cidr" {
 #==============================================================================
 output "default_node_pool" {
   description = "Detailed information about the default node pool if it was created. Includes node count, machine type, disk configuration, scaling parameters, and node metadata. Use this to verify node pool configuration or for scaling decisions."
-  value       = var.create_default_node_pool ? {
+  value = var.create_default_node_pool ? {
     name            = try(google_container_node_pool.default[0].name, null)
     node_count      = try(google_container_node_pool.default[0].initial_node_count, null)
     machine_type    = try(google_container_node_pool.default[0].node_config[0].machine_type, null)
@@ -93,7 +93,7 @@ output "default_node_pool" {
 
 output "additional_node_pools" {
   description = "Detailed information about all additional node pools created beyond the default pool. Organized as a map where keys are node pool names and values contain configuration details. Useful for managing multiple specialized node pools."
-  value       = {
+  value = {
     for name, pool in google_container_node_pool.additional : name => {
       name            = pool.name
       node_count      = pool.initial_node_count
