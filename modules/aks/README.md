@@ -33,9 +33,9 @@ A comprehensive Terraform module to provision and manage Azure Kubernetes Servic
 | Name       | Version     |
 |------------|-------------|
 | terraform  | >= 1.0.0    |
-| azurerm    | ~> 4.30.0   |
-| kubernetes | ~> 2.37.1   |
-| azuread    | ~> 2.48.0   |
+| azurerm    | ~> 4.45.0   |
+| kubernetes | ~> 2.42.0   |
+| azuread    | ~> 2.55.0   |
 
 ## Usage
 
@@ -51,7 +51,7 @@ module "aks" {
   # Recommended/Optional
   node_resource_group_name = "my-aks-nodes"
   dns_prefix               = "prod-aks"
-  kubernetes_version       = "1.28.3"
+  kubernetes_version       = "1.29.0"
   sku_tier                 = "Paid"
   enable_private_cluster   = true
   api_server_authorized_ip_ranges = ["10.0.0.0/8", "203.0.113.0/24"]

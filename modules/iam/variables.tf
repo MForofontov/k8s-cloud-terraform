@@ -116,11 +116,11 @@ variable "azure_application_owners" {
 
 variable "azure_role_assignments" {
   description = "Map of Azure role assignments to create for the service principal"
-  type        = map(object({
+  type = map(object({
     scope                = string
     role_definition_name = string
   }))
-  default     = {}
+  default = {}
 }
 
 variable "azure_use_workload_identity" {

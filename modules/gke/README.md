@@ -43,9 +43,9 @@ A comprehensive Terraform module to provision and manage Google Kubernetes Engin
 | Name | Version |
 |------|---------|
 | terraform | >= 1.0.0 |
-| google | ~> 6.37.0 |
-| google-beta | ~> 6.37.0 |
-| kubernetes | ~> 2.37.1 |
+| google | ~> 6.50.0 |
+| google-beta | ~> 6.50.0 |
+| kubernetes | ~> 2.42.0 |
 
 ## Usage
 
@@ -65,7 +65,7 @@ module "gke" {
   # Cluster configuration
   regional_cluster   = true
   node_locations     = ["us-central1-a", "us-central1-b", "us-central1-c"]
-  kubernetes_version = "1.28"
+  kubernetes_version = "1.29"
   release_channel    = "REGULAR"
 
   # Networking

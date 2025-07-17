@@ -131,13 +131,13 @@ variable "default_node_pool_labels" {
 variable "additional_node_pools" {
   description = "Map of additional node pool configurations to create. Use this to create specialized pools for different workloads (e.g., compute-intensive, memory-intensive, GPU). Each pool can have unique VM sizes, scaling parameters, and node configurations."
   type = map(object({
-    vm_size         = string       # VM size (e.g., 'Standard_D4s_v3', 'Standard_NC6s_v3' for GPU)
-    node_count      = optional(number) # Initial/fixed number of nodes if not autoscaling
-    min_count       = optional(number) # Minimum nodes for autoscaling
-    max_count       = optional(number) # Maximum nodes for autoscaling
-    os_disk_size_gb = optional(number) # OS disk size in GB
-    os_disk_type    = optional(string) # 'Managed' or 'Ephemeral'
-    node_labels     = optional(map(string)) # Kubernetes labels for node selection
+    vm_size         = string                   # VM size (e.g., 'Standard_D4s_v3', 'Standard_NC6s_v3' for GPU)
+    node_count      = optional(number)         # Initial/fixed number of nodes if not autoscaling
+    min_count       = optional(number)         # Minimum nodes for autoscaling
+    max_count       = optional(number)         # Maximum nodes for autoscaling
+    os_disk_size_gb = optional(number)         # OS disk size in GB
+    os_disk_type    = optional(string)         # 'Managed' or 'Ephemeral'
+    node_labels     = optional(map(string))    # Kubernetes labels for node selection
     mode            = optional(string, "User") # 'User' or 'System' (for critical system pods)
   }))
   default = {}

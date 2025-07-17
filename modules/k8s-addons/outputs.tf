@@ -421,7 +421,7 @@ output "installed_addon_names" {
   description = "List of names of all installed addons (only includes enabled addons)."
   value = [
     for name, addon in output.installed_addons.value :
-      name if addon.enabled
+    name if addon.enabled
   ]
 }
 
@@ -434,13 +434,13 @@ output "addons_health" {
   value = {
     all_healthy = alltrue([
       for name, addon in output.installed_addons.value :
-        addon.enabled == false ? true : true  # This would be replaced with actual health checks in a production version
+      addon.enabled == false ? true : true # This would be replaced with actual health checks in a production version
     ])
 
     # This could be enhanced with actual health check data in a real implementation
     addon_status = {
       for name, addon in output.installed_addons.value :
-        name => addon.enabled ? "Healthy" : "Disabled"
+      name => addon.enabled ? "Healthy" : "Disabled"
     }
   }
 }
