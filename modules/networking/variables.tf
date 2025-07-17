@@ -160,11 +160,11 @@ variable "azure_service_endpoints" {
 
 variable "azure_subnet_delegations" {
   description = "Map of subnet delegations for Azure services"
-  type        = map(object({
+  type = map(object({
     service_name = string
     actions      = list(string)
   }))
-  default     = {}
+  default = {}
 }
 
 variable "azure_log_analytics_workspace_id" {

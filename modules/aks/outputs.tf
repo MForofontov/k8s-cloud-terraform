@@ -91,16 +91,16 @@ output "cluster_ca_certificate" {
 output "default_node_pool" {
   description = "Detailed information about the default node pool including size, scaling configuration, and storage settings. This primary node pool runs essential system pods and must exist for the cluster to function. Use this information for capacity planning and monitoring."
   value = {
-    name                = azurerm_kubernetes_cluster.this.default_node_pool[0].name
-    vm_size             = azurerm_kubernetes_cluster.this.default_node_pool[0].vm_size
-    node_count          = azurerm_kubernetes_cluster.this.default_node_pool[0].node_count
+    name                 = azurerm_kubernetes_cluster.this.default_node_pool[0].name
+    vm_size              = azurerm_kubernetes_cluster.this.default_node_pool[0].vm_size
+    node_count           = azurerm_kubernetes_cluster.this.default_node_pool[0].node_count
     auto_scaling_enabled = azurerm_kubernetes_cluster.this.default_node_pool[0].auto_scaling_enabled
-    min_count           = azurerm_kubernetes_cluster.this.default_node_pool[0].min_count
-    max_count           = azurerm_kubernetes_cluster.this.default_node_pool[0].max_count
-    os_disk_size_gb     = azurerm_kubernetes_cluster.this.default_node_pool[0].os_disk_size_gb
-    os_disk_type        = azurerm_kubernetes_cluster.this.default_node_pool[0].os_disk_type
-    vnet_subnet_id      = azurerm_kubernetes_cluster.this.default_node_pool[0].vnet_subnet_id
-    zones               = azurerm_kubernetes_cluster.this.default_node_pool[0].zones
+    min_count            = azurerm_kubernetes_cluster.this.default_node_pool[0].min_count
+    max_count            = azurerm_kubernetes_cluster.this.default_node_pool[0].max_count
+    os_disk_size_gb      = azurerm_kubernetes_cluster.this.default_node_pool[0].os_disk_size_gb
+    os_disk_type         = azurerm_kubernetes_cluster.this.default_node_pool[0].os_disk_type
+    vnet_subnet_id       = azurerm_kubernetes_cluster.this.default_node_pool[0].vnet_subnet_id
+    zones                = azurerm_kubernetes_cluster.this.default_node_pool[0].zones
   }
 }
 
@@ -108,15 +108,15 @@ output "additional_node_pools" {
   description = "Map of all additional node pools created beyond the default. Organized by node pool name, containing detailed configuration for each specialized pool. Use this information to track capacity, understand node distribution, and manage workload placement across pools."
   value = {
     for name, pool in azurerm_kubernetes_cluster_node_pool.additional : name => {
-      id                  = pool.id
-      vm_size             = pool.vm_size
-      node_count          = pool.node_count
+      id                   = pool.id
+      vm_size              = pool.vm_size
+      node_count           = pool.node_count
       auto_scaling_enabled = pool.auto_scaling_enabled
-      min_count           = pool.min_count
-      max_count           = pool.max_count
-      os_disk_size_gb     = pool.os_disk_size_gb
-      os_disk_type        = pool.os_disk_type
-      mode                = pool.mode
+      min_count            = pool.min_count
+      max_count            = pool.max_count
+      os_disk_size_gb      = pool.os_disk_size_gb
+      os_disk_type         = pool.os_disk_type
+      mode                 = pool.mode
     }
   }
 }

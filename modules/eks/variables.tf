@@ -64,7 +64,7 @@ variable "node_role_name" {
 variable "kubernetes_version" {
   description = "Kubernetes version to use for the EKS cluster (e.g., '1.27'). If not specified, the latest available version in AWS will be used. Consider your application compatibility requirements when selecting a version."
   type        = string
-  default     = null  # Uses latest by default
+  default     = null # Uses latest by default
 }
 
 variable "endpoint_private_access" {
@@ -157,12 +157,12 @@ variable "node_labels" {
 
 variable "node_taints" {
   description = "Kubernetes taints to apply to the default node group. Taints prevent pods from scheduling unless they have matching tolerations. Useful for dedicating nodes to specific workloads or reserving capacity for critical services."
-  type        = list(object({
+  type = list(object({
     key    = string
     value  = string
     effect = string
   }))
-  default     = []
+  default = []
 }
 
 #==============================================================================
@@ -171,23 +171,23 @@ variable "node_taints" {
 #==============================================================================
 variable "node_groups" {
   description = "Map of node group configurations to create. Use this to create specialized pools for different workloads (e.g., compute-intensive, memory-intensive, GPU). Each group can have unique instance types, scaling parameters, and node configurations."
-  type        = map(object({
-    instance_types = list(string)     # List of EC2 instance types for this node group
-    desired_size   = number           # Initial number of nodes
-    min_size       = number           # Minimum number of nodes (for autoscaling)
-    max_size       = number           # Maximum number of nodes (for autoscaling)
-    disk_size      = optional(number, 50)  # Root volume size in GiB
-    capacity_type  = optional(string, "ON_DEMAND")  # ON_DEMAND or SPOT
-    labels         = optional(map(string), {})  # Kubernetes labels for node selection
-    taints         = optional(list(object({
-      key    = string  # Taint identifier (e.g., "dedicated")
-      value  = string  # Taint value (e.g., "gpu")
-      effect = string  # NoSchedule, PreferNoSchedule, or NoExecute
+  type = map(object({
+    instance_types = list(string)                  # List of EC2 instance types for this node group
+    desired_size   = number                        # Initial number of nodes
+    min_size       = number                        # Minimum number of nodes (for autoscaling)
+    max_size       = number                        # Maximum number of nodes (for autoscaling)
+    disk_size      = optional(number, 50)          # Root volume size in GiB
+    capacity_type  = optional(string, "ON_DEMAND") # ON_DEMAND or SPOT
+    labels         = optional(map(string), {})     # Kubernetes labels for node selection
+    taints = optional(list(object({
+      key    = string # Taint identifier (e.g., "dedicated")
+      value  = string # Taint value (e.g., "gpu")
+      effect = string # NoSchedule, PreferNoSchedule, or NoExecute
     })), [])
-    subnet_ids     = optional(list(string), null)  # Override default subnets if needed
-    tags           = optional(map(string), {})  # AWS tags for the node group
+    subnet_ids = optional(list(string), null) # Override default subnets if needed
+    tags       = optional(map(string), {})    # AWS tags for the node group
   }))
-  default     = {}
+  default = {}
 }
 
 #==============================================================================
@@ -196,16 +196,16 @@ variable "node_groups" {
 #==============================================================================
 variable "fargate_profiles" {
   description = "Map of Fargate profile configurations to create. Fargate provides serverless compute for pods, eliminating the need to manage EC2 instances. Define which pods run on Fargate based on namespace and label selectors."
-  type        = map(object({
+  type = map(object({
     selectors = list(object({
-      namespace = string  # Kubernetes namespace to match (e.g., "kube-system")
-      labels    = optional(map(string), null)  # Pod labels to match for Fargate execution
+      namespace = string                      # Kubernetes namespace to match (e.g., "kube-system")
+      labels    = optional(map(string), null) # Pod labels to match for Fargate execution
     }))
-    subnet_ids             = optional(list(string), null)  # Private subnets for Fargate pods
-    pod_execution_role_arn = optional(string, null)  # IAM role for Fargate pods
-    tags                   = optional(map(string), {})  # AWS tags for the Fargate profile
+    subnet_ids             = optional(list(string), null) # Private subnets for Fargate pods
+    pod_execution_role_arn = optional(string, null)       # IAM role for Fargate pods
+    tags                   = optional(map(string), {})    # AWS tags for the Fargate profile
   }))
-  default     = {}
+  default = {}
 }
 
 variable "create_fargate_pod_execution_role" {
@@ -233,7 +233,7 @@ variable "enable_coredns" {
 variable "coredns_version" {
   description = "Version of the CoreDNS add-on (e.g., 'v1.10.1-eksbuild.1'). If not specified, EKS will use the default version for your cluster's Kubernetes version. Check compatibility when upgrading Kubernetes."
   type        = string
-  default     = null  # Uses latest by default
+  default     = null # Uses latest by default
 }
 
 variable "enable_kube_proxy" {
@@ -245,7 +245,7 @@ variable "enable_kube_proxy" {
 variable "kube_proxy_version" {
   description = "Version of the kube-proxy add-on (e.g., 'v1.27.4-eksbuild.2'). If not specified, EKS will use the default version for your cluster's Kubernetes version. Should match or be compatible with the cluster version."
   type        = string
-  default     = null  # Uses latest by default
+  default     = null # Uses latest by default
 }
 
 variable "enable_vpc_cni" {
@@ -257,7 +257,7 @@ variable "enable_vpc_cni" {
 variable "vpc_cni_version" {
   description = "Version of the VPC CNI add-on (e.g., 'v1.13.2-eksbuild.1'). If not specified, EKS will use the default version. Newer versions support additional features like custom networking and increased pod density."
   type        = string
-  default     = null  # Uses latest by default
+  default     = null # Uses latest by default
 }
 
 variable "enable_aws_ebs_csi_driver" {
@@ -269,7 +269,7 @@ variable "enable_aws_ebs_csi_driver" {
 variable "aws_ebs_csi_driver_version" {
   description = "Version of the EBS CSI driver add-on (e.g., 'v1.19.0-eksbuild.2'). If not specified, EKS will use the default version. Newer versions may support additional features like volume snapshots and resizing."
   type        = string
-  default     = null  # Uses latest by default
+  default     = null # Uses latest by default
 }
 
 #==============================================================================

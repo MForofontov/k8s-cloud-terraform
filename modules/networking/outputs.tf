@@ -11,10 +11,10 @@
 #------------------------------------------------------------------------------
 output "vpc_id" {
   description = "ID of the VPC/VNet"
-  value       = local.is_aws ? aws_vpc.this[0].id : (
-                local.is_azure ? azurerm_virtual_network.this[0].id : (
-                local.is_gcp ? google_compute_network.this[0].id : null
-                ))
+  value = local.is_aws ? aws_vpc.this[0].id : (
+    local.is_azure ? azurerm_virtual_network.this[0].id : (
+      local.is_gcp ? google_compute_network.this[0].id : null
+  ))
 }
 
 output "vpc_name" {
@@ -29,10 +29,10 @@ output "vpc_cidr" {
 
 output "subnet_ids" {
   description = "List of subnet IDs, in the same order as subnet_cidrs"
-  value       = local.is_aws ? aws_subnet.this[*].id : (
-                local.is_azure ? azurerm_subnet.this[*].id : (
-                local.is_gcp ? google_compute_subnetwork.this[*].id : null
-                ))
+  value = local.is_aws ? aws_subnet.this[*].id : (
+    local.is_azure ? azurerm_subnet.this[*].id : (
+      local.is_gcp ? google_compute_subnetwork.this[*].id : null
+  ))
 }
 
 output "subnet_cidrs" {
@@ -47,20 +47,20 @@ output "subnet_names" {
 
 output "public_subnet_ids" {
   description = "List of public subnet IDs"
-  value       = [for idx in local.public_subnet_indices :
-                local.is_aws ? aws_subnet.this[idx].id : (
-                local.is_azure ? azurerm_subnet.this[idx].id : (
-                local.is_gcp ? google_compute_subnetwork.this[idx].id : null
-                ))]
+  value = [for idx in local.public_subnet_indices :
+    local.is_aws ? aws_subnet.this[idx].id : (
+      local.is_azure ? azurerm_subnet.this[idx].id : (
+        local.is_gcp ? google_compute_subnetwork.this[idx].id : null
+  ))]
 }
 
 output "private_subnet_ids" {
   description = "List of private subnet IDs"
-  value       = [for idx in local.private_subnet_indices :
-                local.is_aws ? aws_subnet.this[idx].id : (
-                local.is_azure ? azurerm_subnet.this[idx].id : (
-                local.is_gcp ? google_compute_subnetwork.this[idx].id : null
-                ))]
+  value = [for idx in local.private_subnet_indices :
+    local.is_aws ? aws_subnet.this[idx].id : (
+      local.is_azure ? azurerm_subnet.this[idx].id : (
+        local.is_gcp ? google_compute_subnetwork.this[idx].id : null
+  ))]
 }
 
 output "nat_gateway_enabled" {
@@ -113,9 +113,9 @@ output "aws_security_group_id" {
 
 output "aws_vpc_endpoint_ids" {
   description = "Map of AWS VPC endpoint IDs"
-  value       = local.is_aws && var.enable_service_endpoints ? {
+  value = local.is_aws && var.enable_service_endpoints ? {
     for k, v in local.aws_vpc_endpoints : k => v.service_type == "Gateway" ?
-      aws_vpc_endpoint.gateway[k].id : aws_vpc_endpoint.interface[k].id
+    aws_vpc_endpoint.gateway[k].id : aws_vpc_endpoint.interface[k].id
   } : null
 }
 
@@ -207,30 +207,30 @@ output "gcp_vpc_service_controls_perimeter_name" {
 output "k8s_network_config" {
   description = "Network configuration for Kubernetes cluster creation"
   value = {
-    vpc_id           = local.is_aws ? aws_vpc.this[0].id : (
-                       local.is_azure ? azurerm_virtual_network.this[0].id : (
-                       local.is_gcp ? google_compute_network.this[0].id : null
-                       ))
-    subnet_ids       = local.is_aws ? aws_subnet.this[*].id : (
-                       local.is_azure ? azurerm_subnet.this[*].id : (
-                       local.is_gcp ? google_compute_subnetwork.this[*].id : null
-                       ))
-    public_subnets   = [for idx in local.public_subnet_indices :
-                       local.is_aws ? aws_subnet.this[idx].id : (
-                       local.is_azure ? azurerm_subnet.this[idx].id : (
-                       local.is_gcp ? google_compute_subnetwork.this[idx].id : null
-                       ))]
-    private_subnets  = [for idx in local.private_subnet_indices :
-                       local.is_aws ? aws_subnet.this[idx].id : (
-                       local.is_azure ? azurerm_subnet.this[idx].id : (
-                       local.is_gcp ? google_compute_subnetwork.this[idx].id : null
-                       ))]
-    pod_cidr         = var.vpc_cidr != null ? cidrsubnet(var.vpc_cidr, 8, 16) : "10.0.16.0/20"
-    service_cidr     = var.vpc_cidr != null ? cidrsubnet(var.vpc_cidr, 8, 17) : "10.0.17.0/24"
-    cluster_endpoint_public_access = var.create_internet_gateway
+    vpc_id = local.is_aws ? aws_vpc.this[0].id : (
+      local.is_azure ? azurerm_virtual_network.this[0].id : (
+        local.is_gcp ? google_compute_network.this[0].id : null
+    ))
+    subnet_ids = local.is_aws ? aws_subnet.this[*].id : (
+      local.is_azure ? azurerm_subnet.this[*].id : (
+        local.is_gcp ? google_compute_subnetwork.this[*].id : null
+    ))
+    public_subnets = [for idx in local.public_subnet_indices :
+      local.is_aws ? aws_subnet.this[idx].id : (
+        local.is_azure ? azurerm_subnet.this[idx].id : (
+          local.is_gcp ? google_compute_subnetwork.this[idx].id : null
+    ))]
+    private_subnets = [for idx in local.private_subnet_indices :
+      local.is_aws ? aws_subnet.this[idx].id : (
+        local.is_azure ? azurerm_subnet.this[idx].id : (
+          local.is_gcp ? google_compute_subnetwork.this[idx].id : null
+    ))]
+    pod_cidr                        = var.vpc_cidr != null ? cidrsubnet(var.vpc_cidr, 8, 16) : "10.0.16.0/20"
+    service_cidr                    = var.vpc_cidr != null ? cidrsubnet(var.vpc_cidr, 8, 17) : "10.0.17.0/24"
+    cluster_endpoint_public_access  = var.create_internet_gateway
     cluster_endpoint_private_access = true
-    resource_group_name = local.is_azure ? azurerm_resource_group.this[0].name : null
-    security_group_id   = local.is_aws ? aws_security_group.this[0].id : null
-    network_security_group_id = local.is_azure ? azurerm_network_security_group.this[0].id : null
+    resource_group_name             = local.is_azure ? azurerm_resource_group.this[0].name : null
+    security_group_id               = local.is_aws ? aws_security_group.this[0].id : null
+    network_security_group_id       = local.is_azure ? azurerm_network_security_group.this[0].id : null
   }
 }

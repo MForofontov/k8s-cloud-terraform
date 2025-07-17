@@ -50,7 +50,7 @@ output "aws_policy_arn" {
 
 output "aws_attached_policy_arns" {
   description = "List of all policy ARNs attached to the IAM role"
-  value       = local.use_aws ? concat(
+  value = local.use_aws ? concat(
     var.aws_iam_policy_json != null ? [aws_iam_policy.k8s_service_account[0].arn] : [],
     var.aws_additional_policy_arns != null ? var.aws_additional_policy_arns : []
   ) : null
@@ -88,11 +88,11 @@ output "azure_sp_password" {
 
 output "azure_role_assignments" {
   description = "Map of Azure role assignments created for the service principal"
-  value       = local.use_azure ? { for k, v in azurerm_role_assignment.k8s_sp_role : k => {
+  value = local.use_azure ? { for k, v in azurerm_role_assignment.k8s_sp_role : k => {
     role_definition_name = v.role_definition_name
     scope                = v.scope
     principal_id         = v.principal_id
-  }} : null
+  } } : null
 }
 
 #==============================================================================
@@ -136,7 +136,7 @@ output "gcp_roles" {
 #==============================================================================
 output "identity_federation_type" {
   description = "Type of identity federation configured (irsa, azure-workload-identity, gcp-workload-identity, none)"
-  value       = local.use_aws ? "irsa" : (
+  value = local.use_aws ? "irsa" : (
     local.use_azure && var.azure_use_workload_identity ? "azure-workload-identity" : (
       local.use_gcp && var.gcp_use_workload_identity ? "gcp-workload-identity" : "none"
     )
@@ -145,10 +145,10 @@ output "identity_federation_type" {
 
 output "k8s_service_account_annotations" {
   description = "Annotations applied to the Kubernetes service account for cloud provider integration"
-  value       = var.create_k8s_service_account ? (
+  value = var.create_k8s_service_account ? (
     local.use_aws ? {
       "eks.amazonaws.com/role-arn" = aws_iam_role.k8s_service_account[0].arn
-    } : (
+      } : (
       local.use_gcp && var.gcp_use_workload_identity ? {
         "iam.gke.io/gcp-service-account" = google_service_account.k8s_sa[0].email
       } : {}
