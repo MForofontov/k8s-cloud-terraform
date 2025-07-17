@@ -137,7 +137,7 @@ output "default_node_group_status" {
 
 output "node_groups" {
   description = "Map of all additional EKS node groups created beyond the default. Keys are node group names and values contain details like ID, ARN, status, and resources. Useful for tracking multiple specialized node groups and their current states."
-  value       = {
+  value = {
     for k, v in aws_eks_node_group.additional : k => {
       id        = v.id
       arn       = v.arn
@@ -153,7 +153,7 @@ output "node_groups" {
 #==============================================================================
 output "fargate_profiles" {
   description = "Map of all EKS Fargate profiles created. Keys are profile names and values contain details like ID, ARN, and status. Use this to track which namespaces and workloads are configured to run on Fargate instead of EC2 nodes."
-  value       = {
+  value = {
     for k, v in aws_eks_fargate_profile.this : k => {
       id     = v.id
       arn    = v.arn
@@ -173,7 +173,7 @@ output "fargate_pod_execution_role_arn" {
 #==============================================================================
 output "installed_addons" {
   description = "Map of all EKS add-ons installed on the cluster with their IDs and versions. Includes CoreDNS, kube-proxy, VPC CNI, and the EBS CSI driver if enabled. Useful for tracking which add-ons are active and their current versions for compatibility planning."
-  value       = {
+  value = {
     coredns = var.enable_coredns ? {
       id      = try(aws_eks_addon.coredns[0].id, null)
       version = try(aws_eks_addon.coredns[0].addon_version, null)

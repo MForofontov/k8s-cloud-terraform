@@ -18,8 +18,8 @@
 terraform {
   required_providers {
     aws = {
-      source  = "hashicorp/aws"
-      version = "~> 5.98.0"
+      source                = "hashicorp/aws"
+      version               = "~> 5.98.0"
       configuration_aliases = [aws.alternate]
     }
     azuread = {
@@ -52,9 +52,9 @@ terraform {
 #==============================================================================
 locals {
   # Determine which provider to use based on input variable
-  use_aws    = var.cloud_provider == "aws"
-  use_azure  = var.cloud_provider == "azure"
-  use_gcp    = var.cloud_provider == "gcp"
+  use_aws   = var.cloud_provider == "aws"
+  use_azure = var.cloud_provider == "azure"
+  use_gcp   = var.cloud_provider == "gcp"
 
   # Common name prefixes for resources
   resource_prefix = "${var.name_prefix}-${var.environment}"
@@ -180,8 +180,8 @@ resource "azuread_application" "k8s_app" {
 resource "azuread_service_principal" "k8s_sp" {
   count = local.use_azure ? 1 : 0
 
-  client_id               = azuread_application.k8s_app[0].client_id  # Changed from application_id to client_id
-  owners                  = var.azure_application_owners
+  client_id = azuread_application.k8s_app[0].client_id # Changed from application_id to client_id
+  owners    = var.azure_application_owners
 
   # Service principal settings
   app_role_assignment_required = false
@@ -196,7 +196,7 @@ resource "azuread_service_principal_password" "k8s_sp_password" {
   display_name         = "${local.resource_prefix}-k8s-sp-password"
 
   # Replace end_date_relative with end_date
-  end_date             = timeadd(timestamp(), "87600h") # 10 years
+  end_date = timeadd(timestamp(), "87600h") # 10 years
 }
 
 # Azure Role Assignments

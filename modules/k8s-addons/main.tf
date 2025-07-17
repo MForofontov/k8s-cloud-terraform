@@ -17,15 +17,15 @@ terraform {
   required_providers {
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = ">= 2.16.0"  # Required for server-side apply and CRD handling
+      version = ">= 2.16.0" # Required for server-side apply and CRD handling
     }
     helm = {
       source  = "hashicorp/helm"
-      version = ">= 2.9.0"   # Required for proper release management
+      version = ">= 2.9.0" # Required for proper release management
     }
     kubectl = {
       source  = "gavinbunney/kubectl"
-      version = ">= 1.19.0"  # Used for applying custom resources when needed
+      version = ">= 1.19.0" # Used for applying custom resources when needed
     }
   }
   required_version = ">= 1.0.0"
@@ -61,8 +61,8 @@ locals {
 
   # High availability settings based on environment
   high_availability = {
-    enabled = local.is_production
-    replicas = local.is_production ? 3 : 1
+    enabled         = local.is_production
+    replicas        = local.is_production ? 3 : 1
     topology_spread = local.is_production
   }
 }
@@ -74,19 +74,19 @@ locals {
 #==============================================================================
 resource "helm_release" "metrics_server" {
   # Only deploy if explicitly enabled
-  count       = var.enable_metrics_server ? 1 : 0
+  count = var.enable_metrics_server ? 1 : 0
 
   # Chart details with fallbacks to default values if not specified
-  name        = lookup(var.metrics_server, "name", "metrics-server")
-  chart       = lookup(var.metrics_server, "chart", "metrics-server")
-  repository  = lookup(var.metrics_server, "repository", "https://kubernetes-sigs.github.io/metrics-server/")
-  version     = lookup(var.metrics_server, "chart_version", null)  # null = latest version
+  name       = lookup(var.metrics_server, "name", "metrics-server")
+  chart      = lookup(var.metrics_server, "chart", "metrics-server")
+  repository = lookup(var.metrics_server, "repository", "https://kubernetes-sigs.github.io/metrics-server/")
+  version    = lookup(var.metrics_server, "chart_version", null) # null = latest version
 
   # Deployment configuration
-  namespace   = lookup(var.metrics_server, "namespace", "kube-system")  # Uses kube-system by default
-  max_history = lookup(var.metrics_server, "max_history", 10)  # Keep history of 10 releases for rollbacks
-  timeout     = lookup(var.metrics_server, "timeout", local.default_timeout)
-  create_namespace = lookup(var.metrics_server, "create_namespace", false)  # kube-system exists by default
+  namespace        = lookup(var.metrics_server, "namespace", "kube-system") # Uses kube-system by default
+  max_history      = lookup(var.metrics_server, "max_history", 10)          # Keep history of 10 releases for rollbacks
+  timeout          = lookup(var.metrics_server, "timeout", local.default_timeout)
+  create_namespace = lookup(var.metrics_server, "create_namespace", false) # kube-system exists by default
 
   # Deployment safety options
   atomic          = lookup(var.metrics_server, "atomic", true)
@@ -118,14 +118,14 @@ resource "helm_release" "metrics_server" {
 # - nodes are underutilized and can be removed
 #==============================================================================
 resource "helm_release" "cluster_autoscaler" {
-  count       = var.enable_cluster_autoscaler ? 1 : 0
-  name        = lookup(var.cluster_autoscaler, "name", "cluster-autoscaler")
-  chart       = lookup(var.cluster_autoscaler, "chart", "cluster-autoscaler")
-  repository  = lookup(var.cluster_autoscaler, "repository", "https://kubernetes.github.io/autoscaler")
-  version     = lookup(var.cluster_autoscaler, "chart_version", null)
-  namespace   = lookup(var.cluster_autoscaler, "namespace", "kube-system")
-  max_history = lookup(var.cluster_autoscaler, "max_history", 10)
-  timeout     = lookup(var.cluster_autoscaler, "timeout", local.default_timeout)
+  count            = var.enable_cluster_autoscaler ? 1 : 0
+  name             = lookup(var.cluster_autoscaler, "name", "cluster-autoscaler")
+  chart            = lookup(var.cluster_autoscaler, "chart", "cluster-autoscaler")
+  repository       = lookup(var.cluster_autoscaler, "repository", "https://kubernetes.github.io/autoscaler")
+  version          = lookup(var.cluster_autoscaler, "chart_version", null)
+  namespace        = lookup(var.cluster_autoscaler, "namespace", "kube-system")
+  max_history      = lookup(var.cluster_autoscaler, "max_history", 10)
+  timeout          = lookup(var.cluster_autoscaler, "timeout", local.default_timeout)
   create_namespace = lookup(var.cluster_autoscaler, "create_namespace", false)
 
   # Deployment safety options
@@ -157,14 +157,14 @@ resource "helm_release" "cluster_autoscaler" {
 # - Cloud-provider optimized instance selection
 #==============================================================================
 resource "helm_release" "karpenter" {
-  count       = var.enable_karpenter ? 1 : 0
-  name        = lookup(var.karpenter, "name", "karpenter")
-  chart       = lookup(var.karpenter, "chart", "karpenter")
-  repository  = lookup(var.karpenter, "repository", "https://charts.karpenter.sh")
-  version     = lookup(var.karpenter, "chart_version", null)
-  namespace   = lookup(var.karpenter, "namespace", "karpenter")
-  max_history = lookup(var.karpenter, "max_history", 10)
-  timeout     = lookup(var.karpenter, "timeout", local.default_timeout)
+  count            = var.enable_karpenter ? 1 : 0
+  name             = lookup(var.karpenter, "name", "karpenter")
+  chart            = lookup(var.karpenter, "chart", "karpenter")
+  repository       = lookup(var.karpenter, "repository", "https://charts.karpenter.sh")
+  version          = lookup(var.karpenter, "chart_version", null)
+  namespace        = lookup(var.karpenter, "namespace", "karpenter")
+  max_history      = lookup(var.karpenter, "max_history", 10)
+  timeout          = lookup(var.karpenter, "timeout", local.default_timeout)
   create_namespace = lookup(var.karpenter, "create_namespace", true)
 
   # Deployment safety options
@@ -195,14 +195,14 @@ resource "helm_release" "karpenter" {
 # - Supporting WebSocket, HTTP/2, and automatic TLS with cert-manager
 #==============================================================================
 resource "helm_release" "nginx_ingress" {
-  count       = var.enable_nginx_ingress ? 1 : 0
-  name        = lookup(var.nginx_ingress, "name", "nginx-ingress")
-  chart       = lookup(var.nginx_ingress, "chart", "ingress-nginx")
-  repository  = lookup(var.nginx_ingress, "repository", "https://kubernetes.github.io/ingress-nginx")
-  version     = lookup(var.nginx_ingress, "chart_version", null)
-  namespace   = lookup(var.nginx_ingress, "namespace", "ingress-nginx")
-  max_history = lookup(var.nginx_ingress, "max_history", 10)
-  timeout     = lookup(var.nginx_ingress, "timeout", local.default_timeout)
+  count            = var.enable_nginx_ingress ? 1 : 0
+  name             = lookup(var.nginx_ingress, "name", "nginx-ingress")
+  chart            = lookup(var.nginx_ingress, "chart", "ingress-nginx")
+  repository       = lookup(var.nginx_ingress, "repository", "https://kubernetes.github.io/ingress-nginx")
+  version          = lookup(var.nginx_ingress, "chart_version", null)
+  namespace        = lookup(var.nginx_ingress, "namespace", "ingress-nginx")
+  max_history      = lookup(var.nginx_ingress, "max_history", 10)
+  timeout          = lookup(var.nginx_ingress, "timeout", local.default_timeout)
   create_namespace = lookup(var.nginx_ingress, "create_namespace", true)
 
   # Deployment safety options
@@ -228,9 +228,9 @@ resource "helm_release" "nginx_ingress" {
                 podAffinityTerm = {
                   labelSelector = {
                     matchExpressions = [{
-                      key = "app.kubernetes.io/name"
+                      key      = "app.kubernetes.io/name"
                       operator = "In"
-                      values = ["ingress-nginx"]
+                      values   = ["ingress-nginx"]
                     }]
                   }
                   topologyKey = "kubernetes.io/hostname"
@@ -240,11 +240,11 @@ resource "helm_release" "nginx_ingress" {
           }
           resources = {
             requests = {
-              cpu = "100m"
+              cpu    = "100m"
               memory = "128Mi"
             }
             limits = {
-              cpu = "200m"
+              cpu    = "200m"
               memory = "256Mi"
             }
           }
@@ -272,14 +272,14 @@ resource "helm_release" "nginx_ingress" {
 # - Supports integration with Ingress resources
 #==============================================================================
 resource "helm_release" "cert_manager" {
-  count       = var.enable_cert_manager ? 1 : 0
-  name        = lookup(var.cert_manager, "name", "cert-manager")
-  chart       = lookup(var.cert_manager, "chart", "cert-manager")
-  repository  = lookup(var.cert_manager, "repository", "https://charts.jetstack.io")
-  version     = lookup(var.cert_manager, "chart_version", null)
-  namespace   = lookup(var.cert_manager, "namespace", "cert-manager")
-  max_history = lookup(var.cert_manager, "max_history", 10)
-  timeout     = lookup(var.cert_manager, "timeout", local.default_timeout)
+  count            = var.enable_cert_manager ? 1 : 0
+  name             = lookup(var.cert_manager, "name", "cert-manager")
+  chart            = lookup(var.cert_manager, "chart", "cert-manager")
+  repository       = lookup(var.cert_manager, "repository", "https://charts.jetstack.io")
+  version          = lookup(var.cert_manager, "chart_version", null)
+  namespace        = lookup(var.cert_manager, "namespace", "cert-manager")
+  max_history      = lookup(var.cert_manager, "max_history", 10)
+  timeout          = lookup(var.cert_manager, "timeout", local.default_timeout)
   create_namespace = lookup(var.cert_manager, "create_namespace", true)
 
   # Deployment safety options
@@ -339,14 +339,14 @@ resource "null_resource" "wait_for_cert_manager_webhook" {
 # - Works with both Ingress resources and LoadBalancer services
 #==============================================================================
 resource "helm_release" "external_dns" {
-  count       = var.enable_external_dns ? 1 : 0
-  name        = lookup(var.external_dns, "name", "external-dns")
-  chart       = lookup(var.external_dns, "chart", "external-dns")
-  repository  = lookup(var.external_dns, "repository", "https://kubernetes-sigs.github.io/external-dns/")
-  version     = lookup(var.external_dns, "chart_version", null)
-  namespace   = lookup(var.external_dns, "namespace", "external-dns")
-  max_history = lookup(var.external_dns, "max_history", 10)
-  timeout     = lookup(var.external_dns, "timeout", local.default_timeout)
+  count            = var.enable_external_dns ? 1 : 0
+  name             = lookup(var.external_dns, "name", "external-dns")
+  chart            = lookup(var.external_dns, "chart", "external-dns")
+  repository       = lookup(var.external_dns, "repository", "https://kubernetes-sigs.github.io/external-dns/")
+  version          = lookup(var.external_dns, "chart_version", null)
+  namespace        = lookup(var.external_dns, "namespace", "external-dns")
+  max_history      = lookup(var.external_dns, "max_history", 10)
+  timeout          = lookup(var.external_dns, "timeout", local.default_timeout)
   create_namespace = lookup(var.external_dns, "create_namespace", true)
 
   # Deployment safety options
@@ -399,9 +399,9 @@ resource "helm_release" "prometheus_stack" {
   version     = lookup(var.prometheus_stack, "chart_version", null)
   namespace   = lookup(var.prometheus_stack, "namespace", "monitoring")
   max_history = lookup(var.prometheus_stack, "max_history", 10)
-  timeout     = lookup(var.prometheus_stack, "timeout",
-                  lookup(var.prometheus_stack, "timeout",
-                    local.is_production ? local.timeouts["large"] : local.default_timeout))
+  timeout = lookup(var.prometheus_stack, "timeout",
+    lookup(var.prometheus_stack, "timeout",
+  local.is_production ? local.timeouts["large"] : local.default_timeout))
   create_namespace = lookup(var.prometheus_stack, "create_namespace", true)
 
   # Deployment safety options
@@ -422,7 +422,7 @@ resource "helm_release" "prometheus_stack" {
               volumeClaimTemplate = {
                 spec = {
                   storageClassName = local.storage_class
-                  accessModes = ["ReadWriteOnce"]
+                  accessModes      = ["ReadWriteOnce"]
                   resources = {
                     requests = {
                       storage = lookup(
@@ -449,9 +449,9 @@ resource "helm_release" "prometheus_stack" {
                 podAffinityTerm = {
                   labelSelector = {
                     matchExpressions = [{
-                      key = "app"
+                      key      = "app"
                       operator = "In"
-                      values = ["prometheus"]
+                      values   = ["prometheus"]
                     }]
                   }
                   topologyKey = "kubernetes.io/hostname"
@@ -491,14 +491,14 @@ resource "helm_release" "prometheus_stack" {
 # - Low memory footprint and high performance C implementation
 #==============================================================================
 resource "helm_release" "fluent_bit" {
-  count       = var.enable_fluent_bit ? 1 : 0
-  name        = lookup(var.fluent_bit, "name", "fluent-bit")
-  chart       = lookup(var.fluent_bit, "chart", "fluent-bit")
-  repository  = lookup(var.fluent_bit, "repository", "https://fluent.github.io/helm-charts")
-  version     = lookup(var.fluent_bit, "chart_version", null)
-  namespace   = lookup(var.fluent_bit, "namespace", "logging")
-  max_history = lookup(var.fluent_bit, "max_history", 10)
-  timeout     = lookup(var.fluent_bit, "timeout", local.default_timeout)
+  count            = var.enable_fluent_bit ? 1 : 0
+  name             = lookup(var.fluent_bit, "name", "fluent-bit")
+  chart            = lookup(var.fluent_bit, "chart", "fluent-bit")
+  repository       = lookup(var.fluent_bit, "repository", "https://fluent.github.io/helm-charts")
+  version          = lookup(var.fluent_bit, "chart_version", null)
+  namespace        = lookup(var.fluent_bit, "namespace", "logging")
+  max_history      = lookup(var.fluent_bit, "max_history", 10)
+  timeout          = lookup(var.fluent_bit, "timeout", local.default_timeout)
   create_namespace = lookup(var.fluent_bit, "create_namespace", true)
 
   # Deployment safety options
@@ -514,14 +514,14 @@ resource "helm_release" "fluent_bit" {
       {
         tolerations = [
           {
-            key = "node-role.kubernetes.io/master"
+            key      = "node-role.kubernetes.io/master"
             operator = "Exists"
-            effect = "NoSchedule"
+            effect   = "NoSchedule"
           },
           {
-            key = "node-role.kubernetes.io/control-plane"
+            key      = "node-role.kubernetes.io/control-plane"
             operator = "Exists"
-            effect = "NoSchedule"
+            effect   = "NoSchedule"
           }
         ]
       },
@@ -547,14 +547,14 @@ resource "helm_release" "fluent_bit" {
 # - Provides visualization and manual sync/rollback through UI
 #==============================================================================
 resource "helm_release" "argocd" {
-  count       = var.enable_argocd ? 1 : 0
-  name        = lookup(var.argocd, "name", "argocd")
-  chart       = lookup(var.argocd, "chart", "argo-cd")
-  repository  = lookup(var.argocd, "repository", "https://argoproj.github.io/argo-helm")
-  version     = lookup(var.argocd, "chart_version", null)
-  namespace   = lookup(var.argocd, "namespace", "argocd")
-  max_history = lookup(var.argocd, "max_history", 10)
-  timeout     = lookup(var.argocd, "timeout", local.default_timeout)
+  count            = var.enable_argocd ? 1 : 0
+  name             = lookup(var.argocd, "name", "argocd")
+  chart            = lookup(var.argocd, "chart", "argo-cd")
+  repository       = lookup(var.argocd, "repository", "https://argoproj.github.io/argo-helm")
+  version          = lookup(var.argocd, "chart_version", null)
+  namespace        = lookup(var.argocd, "namespace", "argocd")
+  max_history      = lookup(var.argocd, "max_history", 10)
+  timeout          = lookup(var.argocd, "timeout", local.default_timeout)
   create_namespace = lookup(var.argocd, "create_namespace", true)
 
   # Deployment safety options
@@ -574,7 +574,7 @@ resource "helm_release" "argocd" {
         server = {
           replicas = local.high_availability.replicas
           autoscaling = {
-            enabled = true
+            enabled     = true
             minReplicas = local.high_availability.replicas
             maxReplicas = 5
           }
@@ -582,7 +582,7 @@ resource "helm_release" "argocd" {
         repoServer = {
           replicas = local.high_availability.replicas
           autoscaling = {
-            enabled = true
+            enabled     = true
             minReplicas = local.high_availability.replicas
             maxReplicas = 5
           }
@@ -610,14 +610,14 @@ resource "helm_release" "argocd" {
 # - Restores full clusters or selected resources
 #==============================================================================
 resource "helm_release" "velero" {
-  count       = var.enable_velero ? 1 : 0
-  name        = lookup(var.velero, "name", "velero")
-  chart       = lookup(var.velero, "chart", "velero")
-  repository  = lookup(var.velero, "repository", "https://vmware-tanzu.github.io/helm-charts")
-  version     = lookup(var.velero, "chart_version", null)
-  namespace   = lookup(var.velero, "namespace", "velero")
-  max_history = lookup(var.velero, "max_history", 10)
-  timeout     = lookup(var.velero, "timeout", local.default_timeout)
+  count            = var.enable_velero ? 1 : 0
+  name             = lookup(var.velero, "name", "velero")
+  chart            = lookup(var.velero, "chart", "velero")
+  repository       = lookup(var.velero, "repository", "https://vmware-tanzu.github.io/helm-charts")
+  version          = lookup(var.velero, "chart_version", null)
+  namespace        = lookup(var.velero, "namespace", "velero")
+  max_history      = lookup(var.velero, "max_history", 10)
+  timeout          = lookup(var.velero, "timeout", local.default_timeout)
   create_namespace = lookup(var.velero, "create_namespace", true)
 
   # Deployment safety options
@@ -633,15 +633,15 @@ resource "helm_release" "velero" {
       local.is_production ? {
         schedules = {
           daily-backup = {
-            schedule = "0 1 * * *"  # 1:00 AM every day
+            schedule = "0 1 * * *" # 1:00 AM every day
             template = {
-              ttl = "720h"  # 30 days
-              includedNamespaces = ["*"]
-              excludedNamespaces = ["kube-system"]
-              includedResources = ["*"]
-              excludedResources = [""]
+              ttl                     = "720h" # 30 days
+              includedNamespaces      = ["*"]
+              excludedNamespaces      = ["kube-system"]
+              includedResources       = ["*"]
+              excludedResources       = [""]
               includeClusterResources = true
-              snapshotVolumes = true
+              snapshotVolumes         = true
             }
           }
         }
@@ -668,14 +668,14 @@ resource "helm_release" "velero" {
 # - Enables GitOps workflows with sensitive information
 #==============================================================================
 resource "helm_release" "sealed_secrets" {
-  count       = var.enable_sealed_secrets ? 1 : 0
-  name        = lookup(var.sealed_secrets, "name", "sealed-secrets")
-  chart       = lookup(var.sealed_secrets, "chart", "sealed-secrets")
-  repository  = lookup(var.sealed_secrets, "repository", "https://bitnami-labs.github.io/sealed-secrets")
-  version     = lookup(var.sealed_secrets, "chart_version", null)
-  namespace   = lookup(var.sealed_secrets, "namespace", "kube-system")
-  max_history = lookup(var.sealed_secrets, "max_history", 10)
-  timeout     = lookup(var.sealed_secrets, "timeout", local.default_timeout)
+  count            = var.enable_sealed_secrets ? 1 : 0
+  name             = lookup(var.sealed_secrets, "name", "sealed-secrets")
+  chart            = lookup(var.sealed_secrets, "chart", "sealed-secrets")
+  repository       = lookup(var.sealed_secrets, "repository", "https://bitnami-labs.github.io/sealed-secrets")
+  version          = lookup(var.sealed_secrets, "chart_version", null)
+  namespace        = lookup(var.sealed_secrets, "namespace", "kube-system")
+  max_history      = lookup(var.sealed_secrets, "max_history", 10)
+  timeout          = lookup(var.sealed_secrets, "timeout", local.default_timeout)
   create_namespace = lookup(var.sealed_secrets, "create_namespace", false)
 
   # Deployment safety options
@@ -696,9 +696,9 @@ resource "helm_release" "sealed_secrets" {
             podAffinityTerm = {
               labelSelector = {
                 matchExpressions = [{
-                  key = "app.kubernetes.io/name"
+                  key      = "app.kubernetes.io/name"
                   operator = "In"
-                  values = ["sealed-secrets"]
+                  values   = ["sealed-secrets"]
                 }]
               }
               topologyKey = "kubernetes.io/hostname"
@@ -735,14 +735,14 @@ resource "helm_release" "sealed_secrets" {
 
 # 1. Istio Base - CRDs and cluster resources
 resource "helm_release" "istio_base" {
-  count       = var.enable_istio ? 1 : 0
-  name        = lookup(var.istio, "base_name", "istio-base")
-  chart       = lookup(var.istio, "base_chart", "base")
-  repository  = lookup(var.istio, "repository", "https://istio-release.storage.googleapis.com/charts")
-  version     = lookup(var.istio, "chart_version", null)
-  namespace   = lookup(var.istio, "namespace", "istio-system")
-  max_history = lookup(var.istio, "max_history", 10)
-  timeout     = lookup(var.istio, "timeout", local.default_timeout)
+  count            = var.enable_istio ? 1 : 0
+  name             = lookup(var.istio, "base_name", "istio-base")
+  chart            = lookup(var.istio, "base_chart", "base")
+  repository       = lookup(var.istio, "repository", "https://istio-release.storage.googleapis.com/charts")
+  version          = lookup(var.istio, "chart_version", null)
+  namespace        = lookup(var.istio, "namespace", "istio-system")
+  max_history      = lookup(var.istio, "max_history", 10)
+  timeout          = lookup(var.istio, "timeout", local.default_timeout)
   create_namespace = lookup(var.istio, "create_namespace", true)
 
   # Deployment safety options
@@ -778,15 +778,15 @@ resource "null_resource" "wait_for_istio_crds" {
 
 # 2. Istiod - Istio control plane
 resource "helm_release" "istiod" {
-  count       = var.enable_istio ? 1 : 0
-  name        = lookup(var.istio, "istiod_name", "istiod")
-  chart       = lookup(var.istio, "istiod_chart", "istiod")
-  repository  = lookup(var.istio, "repository", "https://istio-release.storage.googleapis.com/charts")
-  version     = lookup(var.istio, "chart_version", null)
-  namespace   = lookup(var.istio, "namespace", "istio-system")
-  max_history = lookup(var.istio, "max_history", 10)
-  timeout     = lookup(var.istio, "timeout", local.default_timeout)
-  create_namespace = false  # Already created by istio-base
+  count            = var.enable_istio ? 1 : 0
+  name             = lookup(var.istio, "istiod_name", "istiod")
+  chart            = lookup(var.istio, "istiod_chart", "istiod")
+  repository       = lookup(var.istio, "repository", "https://istio-release.storage.googleapis.com/charts")
+  version          = lookup(var.istio, "chart_version", null)
+  namespace        = lookup(var.istio, "namespace", "istio-system")
+  max_history      = lookup(var.istio, "max_history", 10)
+  timeout          = lookup(var.istio, "timeout", local.default_timeout)
+  create_namespace = false # Already created by istio-base
 
   # Deployment safety options
   atomic          = lookup(var.istio, "atomic", true)
@@ -800,13 +800,13 @@ resource "helm_release" "istiod" {
       # Add high availability settings if in production
       local.is_production ? {
         pilot = {
-          replicaCount = local.high_availability.replicas
+          replicaCount     = local.high_availability.replicas
           autoscaleEnabled = true
-          autoscaleMin = local.high_availability.replicas
-          autoscaleMax = 5
+          autoscaleMin     = local.high_availability.replicas
+          autoscaleMax     = 5
           resources = {
             requests = {
-              cpu = "500m"
+              cpu    = "500m"
               memory = "2Gi"
             }
           }
@@ -833,15 +833,15 @@ resource "helm_release" "istiod" {
 
 # 3. Istio Ingress Gateway - Entry point for external traffic
 resource "helm_release" "istio_ingress" {
-  count       = var.enable_istio && lookup(var.istio, "enable_ingress", true) ? 1 : 0
-  name        = lookup(var.istio, "ingress_name", "istio-ingress")
-  chart       = lookup(var.istio, "ingress_chart", "gateway")
-  repository  = lookup(var.istio, "repository", "https://istio-release.storage.googleapis.com/charts")
-  version     = lookup(var.istio, "chart_version", null)
-  namespace   = lookup(var.istio, "namespace", "istio-system")
-  max_history = lookup(var.istio, "max_history", 10)
-  timeout     = lookup(var.istio, "timeout", local.default_timeout)
-  create_namespace = false  # Already created by istio-base
+  count            = var.enable_istio && lookup(var.istio, "enable_ingress", true) ? 1 : 0
+  name             = lookup(var.istio, "ingress_name", "istio-ingress")
+  chart            = lookup(var.istio, "ingress_chart", "gateway")
+  repository       = lookup(var.istio, "repository", "https://istio-release.storage.googleapis.com/charts")
+  version          = lookup(var.istio, "chart_version", null)
+  namespace        = lookup(var.istio, "namespace", "istio-system")
+  max_history      = lookup(var.istio, "max_history", 10)
+  timeout          = lookup(var.istio, "timeout", local.default_timeout)
+  create_namespace = false # Already created by istio-base
 
   # Deployment safety options
   atomic          = lookup(var.istio, "atomic", true)
@@ -856,17 +856,17 @@ resource "helm_release" "istio_ingress" {
       local.is_production ? {
         replicaCount = local.high_availability.replicas
         autoscaling = {
-          enabled = true
+          enabled     = true
           minReplicas = local.high_availability.replicas
           maxReplicas = 5
         }
         resources = {
           requests = {
-            cpu = "100m"
+            cpu    = "100m"
             memory = "128Mi"
           }
           limits = {
-            cpu = "2000m"
+            cpu    = "2000m"
             memory = "1024Mi"
           }
         }
@@ -896,14 +896,14 @@ resource "helm_release" "istio_ingress" {
 # - Supports pre-admission webhooks and background scanning
 #==============================================================================
 resource "helm_release" "kyverno" {
-  count       = var.enable_kyverno ? 1 : 0
-  name        = lookup(var.kyverno, "name", "kyverno")
-  chart       = lookup(var.kyverno, "chart", "kyverno")
-  repository  = lookup(var.kyverno, "repository", "https://kyverno.github.io/kyverno/")
-  version     = lookup(var.kyverno, "chart_version", null)
-  namespace   = lookup(var.kyverno, "namespace", "kyverno")
-  max_history = lookup(var.kyverno, "max_history", 10)
-  timeout     = lookup(var.kyverno, "timeout", local.default_timeout)
+  count            = var.enable_kyverno ? 1 : 0
+  name             = lookup(var.kyverno, "name", "kyverno")
+  chart            = lookup(var.kyverno, "chart", "kyverno")
+  repository       = lookup(var.kyverno, "repository", "https://kyverno.github.io/kyverno/")
+  version          = lookup(var.kyverno, "chart_version", null)
+  namespace        = lookup(var.kyverno, "namespace", "kyverno")
+  max_history      = lookup(var.kyverno, "max_history", 10)
+  timeout          = lookup(var.kyverno, "timeout", local.default_timeout)
   create_namespace = lookup(var.kyverno, "create_namespace", true)
 
   # Deployment safety options
@@ -920,11 +920,11 @@ resource "helm_release" "kyverno" {
         replicaCount = local.high_availability.replicas
         resources = {
           limits = {
-            cpu = "1000m"
+            cpu    = "1000m"
             memory = "512Mi"
           }
           requests = {
-            cpu = "100m"
+            cpu    = "100m"
             memory = "128Mi"
           }
         }
@@ -951,14 +951,14 @@ resource "helm_release" "kyverno" {
 # - Multi-cloud and hybrid cloud resource management
 #==============================================================================
 resource "helm_release" "crossplane" {
-  count       = var.enable_crossplane ? 1 : 0
-  name        = lookup(var.crossplane, "name", "crossplane")
-  chart       = lookup(var.crossplane, "chart", "crossplane")
-  repository  = lookup(var.crossplane, "repository", "https://charts.crossplane.io/stable")
-  version     = lookup(var.crossplane, "chart_version", null)
-  namespace   = lookup(var.crossplane, "namespace", "crossplane-system")
-  max_history = lookup(var.crossplane, "max_history", 10)
-  timeout     = lookup(var.crossplane, "timeout", local.default_timeout)
+  count            = var.enable_crossplane ? 1 : 0
+  name             = lookup(var.crossplane, "name", "crossplane")
+  chart            = lookup(var.crossplane, "chart", "crossplane")
+  repository       = lookup(var.crossplane, "repository", "https://charts.crossplane.io/stable")
+  version          = lookup(var.crossplane, "chart_version", null)
+  namespace        = lookup(var.crossplane, "namespace", "crossplane-system")
+  max_history      = lookup(var.crossplane, "max_history", 10)
+  timeout          = lookup(var.crossplane, "timeout", local.default_timeout)
   create_namespace = lookup(var.crossplane, "create_namespace", true)
 
   # Deployment safety options
@@ -990,14 +990,14 @@ resource "helm_release" "crossplane" {
 # - Enables additional AWS-specific annotations and features
 #==============================================================================
 resource "helm_release" "aws_load_balancer_controller" {
-  count       = var.enable_aws_load_balancer_controller ? 1 : 0
-  name        = lookup(var.aws_load_balancer_controller, "name", "aws-load-balancer-controller")
-  chart       = lookup(var.aws_load_balancer_controller, "chart", "aws-load-balancer-controller")
-  repository  = lookup(var.aws_load_balancer_controller, "repository", "https://aws.github.io/eks-charts")
-  version     = lookup(var.aws_load_balancer_controller, "chart_version", null)
-  namespace   = lookup(var.aws_load_balancer_controller, "namespace", "kube-system")
-  max_history = lookup(var.aws_load_balancer_controller, "max_history", 10)
-  timeout     = lookup(var.aws_load_balancer_controller, "timeout", local.default_timeout)
+  count            = var.enable_aws_load_balancer_controller ? 1 : 0
+  name             = lookup(var.aws_load_balancer_controller, "name", "aws-load-balancer-controller")
+  chart            = lookup(var.aws_load_balancer_controller, "chart", "aws-load-balancer-controller")
+  repository       = lookup(var.aws_load_balancer_controller, "repository", "https://aws.github.io/eks-charts")
+  version          = lookup(var.aws_load_balancer_controller, "chart_version", null)
+  namespace        = lookup(var.aws_load_balancer_controller, "namespace", "kube-system")
+  max_history      = lookup(var.aws_load_balancer_controller, "max_history", 10)
+  timeout          = lookup(var.aws_load_balancer_controller, "timeout", local.default_timeout)
   create_namespace = lookup(var.aws_load_balancer_controller, "create_namespace", false)
 
   # Deployment safety options
