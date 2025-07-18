@@ -304,7 +304,7 @@ metadata:
 spec:
   type: 0
   resourceID: ${azuread_service_principal.k8s_sp[0].id}
-  clientID: ${azuread_application.k8s_app[0].application_id}
+  clientID: ${azuread_application.k8s_app[0].client_id}
 YAML
 
   depends_on = [

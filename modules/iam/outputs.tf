@@ -62,7 +62,7 @@ output "aws_attached_policy_arns" {
 #==============================================================================
 output "azure_app_id" {
   description = "Application ID of the Azure AD application"
-  value       = local.use_azure ? azuread_application.k8s_app[0].application_id : null
+  value       = local.use_azure ? azuread_application.k8s_app[0].client_id : null
 }
 
 output "azure_app_object_id" {

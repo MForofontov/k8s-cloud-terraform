@@ -446,12 +446,7 @@ resource "azurerm_subnet" "this" {
   address_prefixes     = [local.subnet_cidrs[count.index]]
 
   # Enable service endpoints for private subnets
-  dynamic "service_endpoints" {
-    for_each = var.enable_service_endpoints && contains(local.private_subnet_indices, count.index) ? var.azure_service_endpoints : []
-    content {
-      service = service_endpoints.value
-    }
-  }
+  service_endpoints = var.enable_service_endpoints && contains(local.private_subnet_indices, count.index) ? var.azure_service_endpoints : []
 
   # Delegation for specific Azure services if required
   dynamic "delegation" {
@@ -618,13 +613,7 @@ resource "google_compute_network" "this" {
   routing_mode = var.gcp_routing_mode
 
   # Enable dual-stack IPv6 if specified
-  dynamic "ipv6_access_type" {
-    for_each = local.enable_ipv6 ? ["EXTERNAL"] : []
-    content {
-      enable_ipv6 = true
-      type        = ipv6_access_type.value
-    }
-  }
+  enable_ula_internal_ipv6 = local.enable_ipv6
 }
 
 resource "google_compute_subnetwork" "this" {
@@ -649,13 +638,7 @@ resource "google_compute_subnetwork" "this" {
   }
 
   # Configure IPv6 if enabled and this is a public subnet
-  dynamic "ipv6_access_type" {
-    for_each = local.enable_ipv6 && contains(local.public_subnet_indices, count.index) ? ["EXTERNAL"] : []
-    content {
-      enable_ipv6 = true
-      type        = ipv6_access_type.value
-    }
-  }
+  ipv6_access_type = local.enable_ipv6 && contains(local.public_subnet_indices, count.index) ? "EXTERNAL" : null
 }
 
 #------------------------------------------------------------------------------
@@ -702,9 +685,16 @@ resource "google_compute_router_nat" "this" {
 # GCP Firewall Rules (basic network security)
 #------------------------------------------------------------------------------
 resource "google_compute_firewall" "egress" {
-  count   = local.is_gcp ? 1 : 0
-  name    = "${var.name_prefix}-allow-egress"
-  network = google_compute_network.this[0].id
+  count     = local.is_gcp ? 1 : 0
+  name      = "${var.name_prefix}-allow-egress"
+  network   = google_compute_network.this[0].id
+  direction = "EGRESS"
+  
+  allow {
+    protocol = "all"
+  }
+  
+  destination_ranges = ["0.0.0.0/0"]
 }
 
 #------------------------------------------------------------------------------

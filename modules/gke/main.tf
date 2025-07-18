@@ -386,12 +386,7 @@ resource "google_container_node_pool" "default" {
     # Local SSD Configuration
     # Adds high-performance local storage to nodes
     #----------------------------------------------------------
-    dynamic "local_ssd_count" {
-      for_each = var.default_local_ssd_count > 0 ? [1] : []
-      content {
-        count = var.default_local_ssd_count # Number of 375GB local SSD disks
-      }
-    }
+    local_ssd_count = var.default_local_ssd_count # Number of 375GB local SSD disks
 
     #----------------------------------------------------------
     # Tags and Metadata
@@ -525,12 +520,7 @@ resource "google_container_node_pool" "additional" {
     # Local SSD Configuration
     # High-performance local storage
     #----------------------------------------------------------
-    dynamic "local_ssd_count" {
-      for_each = each.value.local_ssd_count != null && each.value.local_ssd_count > 0 ? [1] : []
-      content {
-        count = each.value.local_ssd_count
-      }
-    }
+    local_ssd_count = each.value.local_ssd_count != null ? each.value.local_ssd_count : 0
 
     #----------------------------------------------------------
     # Tags and Metadata

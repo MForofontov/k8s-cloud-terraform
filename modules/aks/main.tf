@@ -191,7 +191,30 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
   # Uses dedicated tables in Log Analytics for better query performance
   log_analytics_destination_type = "Dedicated"
 
-  # By default, this captures all log categories for the AKS cluster
+  # AKS cluster log categories
+  enabled_log {
+    category = "kube-apiserver"
+  }
+  
+  enabled_log {
+    category = "kube-controller-manager"
+  }
+  
+  enabled_log {
+    category = "kube-scheduler"
+  }
+  
+  enabled_log {
+    category = "kube-audit"
+  }
+  
+  enabled_log {
+    category = "cluster-autoscaler"
+  }
+
+  enabled_metric {
+    category = "AllMetrics"
+  }
 }
 
 #--------------------------------------------------------------
@@ -209,6 +232,14 @@ resource "azurerm_monitor_diagnostic_setting" "container_insights" {
   # - Pod health monitoring
   # - Cluster resource utilization
   # - Pre-configured dashboards and alerts
+  
+  enabled_log {
+    category = "ContainerInsights"
+  }
+
+  enabled_metric {
+    category = "AllMetrics"
+  }
 }
 
 #==============================================================================
