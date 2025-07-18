@@ -18,6 +18,6 @@ cd "$(dirname "$0")/../$ENV_DIR"
 
 terraform init -input=false
 
-terraform apply
+terraform apply -auto-approve -input=false
 
 echo "Terraform apply complete for $ENV_DIR."
