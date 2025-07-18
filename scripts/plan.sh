@@ -17,6 +17,6 @@ cd "$(dirname "$0")/../$ENV_DIR"
 
 terraform init -input=false
 
-terraform plan
+terraform plan -input=false
 
 echo "Terraform plan complete for $ENV_DIR."
