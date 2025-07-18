@@ -22,15 +22,15 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.104.0"  # Latest stable AWS provider at time of creation
+      version = "~> 5.104.0" # Latest stable AWS provider at time of creation
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.42.0"  # For potential future Kubernetes resource management
+      version = "~> 2.42.0" # For potential future Kubernetes resource management
     }
     tls = {
       source  = "hashicorp/tls"
-      version = "~> 4.2.0"   # Used for OIDC provider certificate handling
+      version = "~> 4.2.0" # Used for OIDC provider certificate handling
     }
   }
   required_version = ">= 1.0.0"
@@ -629,6 +629,11 @@ data "aws_iam_policy_document" "ec2_assume_role_policy" {
 # Creates a local configuration file for kubectl
 #==============================================================================
 resource "null_resource" "generate_kubeconfig" {
+  triggers = {
+    cluster_name = aws_eks_cluster.this.name
+    region       = data.aws_region.current.name
+  }
+
   provisioner "local-exec" {
     command = "aws eks update-kubeconfig --name ${aws_eks_cluster.this.name} --region ${data.aws_region.current.name} --kubeconfig ${path.module}/kubeconfig_${var.cluster_name}"
   }

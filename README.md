@@ -18,10 +18,14 @@ This repository contains Terraform configurations and reusable modules for provi
    ```bash
    ./scripts/plan.sh
    ```
+   This script runs `terraform plan -input=false` so it won't prompt for
+   variable values interactively.
 3. **Apply** the configuration to create resources:
    ```bash
    ./scripts/apply.sh
    ```
+   The apply script uses `terraform apply -auto-approve -input=false` to
+   skip the confirmation prompt during automated runs.
 
 Variables for the dev environment can be adjusted in `environments/dev/terraform.tfvars`.
 
