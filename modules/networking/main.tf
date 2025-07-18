@@ -700,7 +700,7 @@ resource "google_compute_firewall" "egress" {
     protocol = "icmp"
   }
 
-  destination_ranges = ["0.0.0.0/0"]
+  destination_ranges = var.allowed_egress_ranges
 }
 
 #------------------------------------------------------------------------------
