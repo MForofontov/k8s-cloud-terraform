@@ -21,15 +21,15 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 6.50.0"  # Latest stable Google provider at time of creation
+      version = "~> 5.20.0"
     }
     google-beta = {
       source  = "hashicorp/google-beta"
-      version = "~> 6.50.0"  # Used for GKE features that are in beta
+      version = "~> 5.20.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.42.0"  # For generating kubeconfig and potential future K8s resource management
+      version = "~> 2.29.0"
     }
   }
   required_version = ">= 1.0.0"
