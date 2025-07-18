@@ -32,11 +32,11 @@ terraform {
     }
     google = {
       source  = "hashicorp/google"
-      version = "~> 6.37.0"
+      version = "~> 6.50.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.37.1"
+      version = "~> 2.42.0"
     }
     kubectl = {
       source  = "gavinbunney/kubectl"
