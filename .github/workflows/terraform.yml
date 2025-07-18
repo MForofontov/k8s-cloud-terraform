@@ -1,11 +1,6 @@
 name: Terraform Checks
 
 on:
-  push:
-    paths:
-      - 'environments/dev/**'
-      - 'modules/**'
-      - '.github/workflows/terraform.yml'
   pull_request:
     paths:
       - 'environments/dev/**'
