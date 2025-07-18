@@ -23,15 +23,15 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.45.0" # Latest stable Azure provider at time of creation
+      version = "~> 4.37.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.29.0" # For optional Kubernetes resource management
+      version = "~> 2.37.1"
     }
     azuread = {
       source  = "hashicorp/azuread"
-      version = "~> 2.55.0" # For Azure AD integration and RBAC
+      version = "~> 3.4.0"
     }
   }
   required_version = ">= 1.0.0"

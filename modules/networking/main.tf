@@ -17,15 +17,15 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.39.0"
+      version = "~> 5.82.0"
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 3.95.0"
+      version = "~> 4.14.0"
     }
     google = {
       source  = "hashicorp/google"
-      version = "~> 5.20.0"
+      version = "~> 6.14.0"
     }
   }
   required_version = ">= 1.0.0"
@@ -705,30 +705,6 @@ resource "google_compute_firewall" "egress" {
   count   = local.is_gcp ? 1 : 0
   name    = "${var.name_prefix}-allow-egress"
   network = google_compute_network.this[0].id
-  project = var.gcp_project_id
-
-  direction = "EGRESS"
-  allow {
-    protocol = "all"
-  }
-
-  destination_ranges = ["0.0.0.0/0"]
-}
-
-# Deny all ingress by default
-resource "google_compute_firewall" "deny_ingress" {
-  count   = local.is_gcp ? 1 : 0
-  name    = "${var.name_prefix}-deny-ingress"
-  network = google_compute_network.this[0].id
-  project = var.gcp_project_id
-
-  direction     = "INGRESS"
-  priority      = 65534 # Just before the default allow
-  source_ranges = ["0.0.0.0/0"]
-
-  deny {
-    protocol = "all"
-  }
 }
 
 #------------------------------------------------------------------------------
