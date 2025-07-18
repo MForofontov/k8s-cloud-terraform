@@ -116,6 +116,12 @@ variable "enable_service_endpoints" {
   default     = false
 }
 
+variable "allowed_egress_ranges" {
+  description = "List of CIDR ranges allowed for egress traffic in the egress firewall rule."
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+}
+
 #------------------------------------------------------------------------------
 # AWS Specific Configuration
 #------------------------------------------------------------------------------
