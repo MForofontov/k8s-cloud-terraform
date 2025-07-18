@@ -19,7 +19,7 @@ terraform {
   required_providers {
     aws = {
       source                = "hashicorp/aws"
-      version               = "~> 5.98.0"
+      version               = "~> 5.82.0"
       configuration_aliases = [aws.alternate]
     }
     azuread = {
@@ -28,15 +28,15 @@ terraform {
     }
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.30.0"
+      version = "~> 4.37.0"
     }
     google = {
       source  = "hashicorp/google"
-      version = "~> 6.50.0"
+      version = "~> 6.43.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.42.0"
+      version = "~> 2.37.1"
     }
     kubectl = {
       source  = "gavinbunney/kubectl"

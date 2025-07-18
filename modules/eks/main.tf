@@ -22,15 +22,15 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.104.0" # Latest stable AWS provider at time of creation
+      version = "~> 5.82.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
-      version = "~> 2.42.0" # For potential future Kubernetes resource management
+      version = "~> 2.37.1"
     }
     tls = {
       source  = "hashicorp/tls"
-      version = "~> 4.2.0" # Used for OIDC provider certificate handling
+      version = "~> 4.1.0"
     }
   }
   required_version = ">= 1.0.0"
