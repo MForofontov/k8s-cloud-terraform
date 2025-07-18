@@ -198,9 +198,9 @@ resource "helm_release" "metrics_server" {
     # Convert map of values to YAML for Helm
     yamlencode(lookup(var.metrics_server, "set_values", {})),
     # Individual value overrides
-    lookup(var.metrics_server, "set", {}) != {} ? 
-      yamlencode(lookup(var.metrics_server, "set", {})) : 
-      ""
+    lookup(var.metrics_server, "set", {}) != {} ?
+    yamlencode(lookup(var.metrics_server, "set", {})) :
+    ""
   ]
 }
 
@@ -230,9 +230,9 @@ resource "helm_release" "cluster_autoscaler" {
   values = [
     lookup(var.cluster_autoscaler, "values", "") != "" ? file(var.cluster_autoscaler.values) : "",
     yamlencode(lookup(var.cluster_autoscaler, "set_values", {})),
-    lookup(var.cluster_autoscaler, "set", {}) != {} ? 
-      yamlencode(lookup(var.cluster_autoscaler, "set", {})) : 
-      ""
+    lookup(var.cluster_autoscaler, "set", {}) != {} ?
+    yamlencode(lookup(var.cluster_autoscaler, "set", {})) :
+    ""
   ]
 }
 
@@ -264,9 +264,9 @@ resource "helm_release" "karpenter" {
   values = [
     lookup(var.karpenter, "values", "") != "" ? file(var.karpenter.values) : "",
     yamlencode(lookup(var.karpenter, "set_values", {})),
-    lookup(var.karpenter, "set", {}) != {} ? 
-      yamlencode(lookup(var.karpenter, "set", {})) : 
-      ""
+    lookup(var.karpenter, "set", {}) != {} ?
+    yamlencode(lookup(var.karpenter, "set", {})) :
+    ""
   ]
 }
 
@@ -291,9 +291,9 @@ resource "helm_release" "nginx_ingress" {
   values = [
     lookup(var.nginx_ingress, "values", "") != "" ? file(var.nginx_ingress.values) : "",
     yamlencode(lookup(var.nginx_ingress, "set_values", {})),
-    lookup(var.nginx_ingress, "set", {}) != {} ? 
-      yamlencode(lookup(var.nginx_ingress, "set", {})) : 
-      ""
+    lookup(var.nginx_ingress, "set", {}) != {} ?
+    yamlencode(lookup(var.nginx_ingress, "set", {})) :
+    ""
   ]
 }
 
@@ -318,9 +318,9 @@ resource "helm_release" "cert_manager" {
   values = [
     lookup(var.cert_manager, "values", "") != "" ? file(var.cert_manager.values) : "",
     yamlencode(lookup(var.cert_manager, "set_values", {})),
-    lookup(var.cert_manager, "set", {}) != {} ? 
-      yamlencode(lookup(var.cert_manager, "set", {})) : 
-      ""
+    lookup(var.cert_manager, "set", {}) != {} ?
+    yamlencode(lookup(var.cert_manager, "set", {})) :
+    ""
   ]
 }
 
@@ -345,9 +345,9 @@ resource "helm_release" "external_dns" {
   values = [
     lookup(var.external_dns, "values", "") != "" ? file(var.external_dns.values) : "",
     yamlencode(lookup(var.external_dns, "set_values", {})),
-    lookup(var.external_dns, "set", {}) != {} ? 
-      yamlencode(lookup(var.external_dns, "set", {})) : 
-      ""
+    lookup(var.external_dns, "set", {}) != {} ?
+    yamlencode(lookup(var.external_dns, "set", {})) :
+    ""
   ]
 }
 
@@ -372,9 +372,9 @@ resource "helm_release" "prometheus_stack" {
   values = [
     lookup(var.prometheus_stack, "values", "") != "" ? file(var.prometheus_stack.values) : "",
     yamlencode(lookup(var.prometheus_stack, "set_values", {})),
-    lookup(var.prometheus_stack, "set", {}) != {} ? 
-      yamlencode(lookup(var.prometheus_stack, "set", {})) : 
-      ""
+    lookup(var.prometheus_stack, "set", {}) != {} ?
+    yamlencode(lookup(var.prometheus_stack, "set", {})) :
+    ""
   ]
 }
 
@@ -399,9 +399,9 @@ resource "helm_release" "fluent_bit" {
   values = [
     lookup(var.fluent_bit, "values", "") != "" ? file(var.fluent_bit.values) : "",
     yamlencode(lookup(var.fluent_bit, "set_values", {})),
-    lookup(var.fluent_bit, "set", {}) != {} ? 
-      yamlencode(lookup(var.fluent_bit, "set", {})) : 
-      ""
+    lookup(var.fluent_bit, "set", {}) != {} ?
+    yamlencode(lookup(var.fluent_bit, "set", {})) :
+    ""
   ]
 }
 
@@ -426,9 +426,9 @@ resource "helm_release" "argocd" {
   values = [
     lookup(var.argocd, "values", "") != "" ? file(var.argocd.values) : "",
     yamlencode(lookup(var.argocd, "set_values", {})),
-    lookup(var.argocd, "set", {}) != {} ? 
-      yamlencode(lookup(var.argocd, "set", {})) : 
-      ""
+    lookup(var.argocd, "set", {}) != {} ?
+    yamlencode(lookup(var.argocd, "set", {})) :
+    ""
   ]
 }
 
@@ -453,9 +453,9 @@ resource "helm_release" "velero" {
   values = [
     lookup(var.velero, "values", "") != "" ? file(var.velero.values) : "",
     yamlencode(lookup(var.velero, "set_values", {})),
-    lookup(var.velero, "set", {}) != {} ? 
-      yamlencode(lookup(var.velero, "set", {})) : 
-      ""
+    lookup(var.velero, "set", {}) != {} ?
+    yamlencode(lookup(var.velero, "set", {})) :
+    ""
   ]
 }
 
@@ -480,9 +480,9 @@ resource "helm_release" "sealed_secrets" {
   values = [
     lookup(var.sealed_secrets, "values", "") != "" ? file(var.sealed_secrets.values) : "",
     yamlencode(lookup(var.sealed_secrets, "set_values", {})),
-    lookup(var.sealed_secrets, "set", {}) != {} ? 
-      yamlencode(lookup(var.sealed_secrets, "set", {})) : 
-      ""
+    lookup(var.sealed_secrets, "set", {}) != {} ?
+    yamlencode(lookup(var.sealed_secrets, "set", {})) :
+    ""
   ]
 }
 
@@ -507,9 +507,9 @@ resource "helm_release" "kyverno" {
   values = [
     lookup(var.kyverno, "values", "") != "" ? file(var.kyverno.values) : "",
     yamlencode(lookup(var.kyverno, "set_values", {})),
-    lookup(var.kyverno, "set", {}) != {} ? 
-      yamlencode(lookup(var.kyverno, "set", {})) : 
-      ""
+    lookup(var.kyverno, "set", {}) != {} ?
+    yamlencode(lookup(var.kyverno, "set", {})) :
+    ""
   ]
 }
 
@@ -534,9 +534,9 @@ resource "helm_release" "crossplane" {
   values = [
     lookup(var.crossplane, "values", "") != "" ? file(var.crossplane.values) : "",
     yamlencode(lookup(var.crossplane, "set_values", {})),
-    lookup(var.crossplane, "set", {}) != {} ? 
-      yamlencode(lookup(var.crossplane, "set", {})) : 
-      ""
+    lookup(var.crossplane, "set", {}) != {} ?
+    yamlencode(lookup(var.crossplane, "set", {})) :
+    ""
   ]
 }
 
@@ -561,9 +561,9 @@ resource "helm_release" "aws_load_balancer_controller" {
   values = [
     lookup(var.aws_load_balancer_controller, "values", "") != "" ? file(var.aws_load_balancer_controller.values) : "",
     yamlencode(lookup(var.aws_load_balancer_controller, "set_values", {})),
-    lookup(var.aws_load_balancer_controller, "set", {}) != {} ? 
-      yamlencode(lookup(var.aws_load_balancer_controller, "set", {})) : 
-      ""
+    lookup(var.aws_load_balancer_controller, "set", {}) != {} ?
+    yamlencode(lookup(var.aws_load_balancer_controller, "set", {})) :
+    ""
   ]
 }
 
@@ -588,9 +588,9 @@ resource "helm_release" "istio_base" {
   values = [
     lookup(var.istio, "base_values", "") != "" ? file(var.istio.base_values) : "",
     yamlencode(lookup(var.istio, "base_set_values", {})),
-    lookup(var.istio, "base_set", {}) != {} ? 
-      yamlencode(lookup(var.istio, "base_set", {})) : 
-      ""
+    lookup(var.istio, "base_set", {}) != {} ?
+    yamlencode(lookup(var.istio, "base_set", {})) :
+    ""
   ]
 }
 
@@ -614,9 +614,9 @@ resource "helm_release" "istiod" {
   values = [
     lookup(var.istio, "istiod_values", "") != "" ? file(var.istio.istiod_values) : "",
     yamlencode(lookup(var.istio, "istiod_set_values", {})),
-    lookup(var.istio, "istiod_set", {}) != {} ? 
-      yamlencode(lookup(var.istio, "istiod_set", {})) : 
-      ""
+    lookup(var.istio, "istiod_set", {}) != {} ?
+    yamlencode(lookup(var.istio, "istiod_set", {})) :
+    ""
   ]
 }
 
@@ -640,8 +640,8 @@ resource "helm_release" "istio_ingress" {
   values = [
     lookup(var.istio, "ingress_values", "") != "" ? file(var.istio.ingress_values) : "",
     yamlencode(lookup(var.istio, "ingress_set_values", {})),
-    lookup(var.istio, "ingress_set", {}) != {} ? 
-      yamlencode(lookup(var.istio, "ingress_set", {})) : 
-      ""
+    lookup(var.istio, "ingress_set", {}) != {} ?
+    yamlencode(lookup(var.istio, "ingress_set", {})) :
+    ""
   ]
 }

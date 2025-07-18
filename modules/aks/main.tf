@@ -195,19 +195,19 @@ resource "azurerm_monitor_diagnostic_setting" "aks" {
   enabled_log {
     category = "kube-apiserver"
   }
-  
+
   enabled_log {
     category = "kube-controller-manager"
   }
-  
+
   enabled_log {
     category = "kube-scheduler"
   }
-  
+
   enabled_log {
     category = "kube-audit"
   }
-  
+
   enabled_log {
     category = "cluster-autoscaler"
   }
@@ -232,7 +232,7 @@ resource "azurerm_monitor_diagnostic_setting" "container_insights" {
   # - Pod health monitoring
   # - Cluster resource utilization
   # - Pre-configured dashboards and alerts
-  
+
   enabled_log {
     category = "ContainerInsights"
   }

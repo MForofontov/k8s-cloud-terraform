@@ -318,7 +318,7 @@ output "istio_ingress_version" {
 #==============================================================================
 output "installed_addons" {
   description = "Map of all installed addons with their status and version information. Useful for monitoring which components are active and their configuration."
-  value = local.installed_addons_data
+  value       = local.installed_addons_data
 }
 
 # For backward compatibility - returns a list of names of enabled addons

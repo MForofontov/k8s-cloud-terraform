@@ -689,11 +689,11 @@ resource "google_compute_firewall" "egress" {
   name      = "${var.name_prefix}-allow-egress"
   network   = google_compute_network.this[0].id
   direction = "EGRESS"
-  
+
   allow {
     protocol = "all"
   }
-  
+
   destination_ranges = ["0.0.0.0/0"]
 }
 
