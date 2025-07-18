@@ -60,7 +60,7 @@ module "network" {
 | terraform | >= 1.0.0 |
  | aws | ~> 5.82.0 |
  | azurerm | ~> 4.37.0 |
- | google | ~> 6.43.0 |
+ | google | ~> 6.44.0 |
 
 ## Input Variables
 

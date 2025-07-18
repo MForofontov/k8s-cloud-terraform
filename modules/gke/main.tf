@@ -21,7 +21,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 6.43.0"
+      version = "~> 6.44.0"
     }
     google-beta = {
       source  = "hashicorp/google-beta"
@@ -64,12 +64,7 @@ resource "google_container_cluster" "this" {
   # Node Locations
   # For regional clusters, specifies which zones to deploy nodes in
   #--------------------------------------------------------------
-  dynamic "node_locations" {
-    for_each = var.regional_cluster && length(var.node_locations) > 0 ? [1] : []
-    content {
-      locations = var.node_locations # List of zones within the region for node placement
-    }
-  }
+  node_locations = var.regional_cluster && length(var.node_locations) > 0 ? var.node_locations : null
 
   #--------------------------------------------------------------
   # Default Node Pool Configuration
