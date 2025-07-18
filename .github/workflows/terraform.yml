@@ -6,6 +6,7 @@ on:
       - 'environments/dev/**'
       - 'modules/**'
       - '.github/workflows/terraform.yml'
+  workflow_dispatch:
 
 jobs:
   terraform:
