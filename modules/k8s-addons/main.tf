@@ -65,6 +65,104 @@ locals {
     replicas        = local.is_production ? 3 : 1
     topology_spread = local.is_production
   }
+
+  # Installed addons data structure for internal use
+  installed_addons_data = {
+    "metrics-server" = var.enable_metrics_server ? {
+      enabled   = true
+      namespace = helm_release.metrics_server[0].namespace
+      version   = helm_release.metrics_server[0].version
+    } : { enabled = false }
+
+    "cluster-autoscaler" = var.enable_cluster_autoscaler ? {
+      enabled   = true
+      namespace = helm_release.cluster_autoscaler[0].namespace
+      version   = helm_release.cluster_autoscaler[0].version
+    } : { enabled = false }
+
+    "karpenter" = var.enable_karpenter ? {
+      enabled   = true
+      namespace = helm_release.karpenter[0].namespace
+      version   = helm_release.karpenter[0].version
+    } : { enabled = false }
+
+    "nginx-ingress" = var.enable_nginx_ingress ? {
+      enabled   = true
+      namespace = helm_release.nginx_ingress[0].namespace
+      version   = helm_release.nginx_ingress[0].version
+    } : { enabled = false }
+
+    "cert-manager" = var.enable_cert_manager ? {
+      enabled   = true
+      namespace = helm_release.cert_manager[0].namespace
+      version   = helm_release.cert_manager[0].version
+    } : { enabled = false }
+
+    "external-dns" = var.enable_external_dns ? {
+      enabled   = true
+      namespace = helm_release.external_dns[0].namespace
+      version   = helm_release.external_dns[0].version
+    } : { enabled = false }
+
+    "prometheus-stack" = var.enable_prometheus_stack ? {
+      enabled   = true
+      namespace = helm_release.prometheus_stack[0].namespace
+      version   = helm_release.prometheus_stack[0].version
+    } : { enabled = false }
+
+    "fluent-bit" = var.enable_fluent_bit ? {
+      enabled   = true
+      namespace = helm_release.fluent_bit[0].namespace
+      version   = helm_release.fluent_bit[0].version
+    } : { enabled = false }
+
+    "argocd" = var.enable_argocd ? {
+      enabled   = true
+      namespace = helm_release.argocd[0].namespace
+      version   = helm_release.argocd[0].version
+    } : { enabled = false }
+
+    "velero" = var.enable_velero ? {
+      enabled   = true
+      namespace = helm_release.velero[0].namespace
+      version   = helm_release.velero[0].version
+    } : { enabled = false }
+
+    "sealed-secrets" = var.enable_sealed_secrets ? {
+      enabled   = true
+      namespace = helm_release.sealed_secrets[0].namespace
+      version   = helm_release.sealed_secrets[0].version
+    } : { enabled = false }
+
+    "kyverno" = var.enable_kyverno ? {
+      enabled   = true
+      namespace = helm_release.kyverno[0].namespace
+      version   = helm_release.kyverno[0].version
+    } : { enabled = false }
+
+    "crossplane" = var.enable_crossplane ? {
+      enabled   = true
+      namespace = helm_release.crossplane[0].namespace
+      version   = helm_release.crossplane[0].version
+    } : { enabled = false }
+
+    "aws-load-balancer-controller" = var.enable_aws_load_balancer_controller ? {
+      enabled   = true
+      namespace = helm_release.aws_load_balancer_controller[0].namespace
+      version   = helm_release.aws_load_balancer_controller[0].version
+    } : { enabled = false }
+
+    "istio" = var.enable_istio ? {
+      enabled        = true
+      namespace      = helm_release.istio_base[0].namespace
+      base_version   = helm_release.istio_base[0].version
+      istiod_version = helm_release.istiod[0].version
+      ingress = {
+        enabled = lookup(var.istio, "enable_ingress", true)
+        version = lookup(var.istio, "enable_ingress", true) ? helm_release.istio_ingress[0].version : null
+      }
+    } : { enabled = false }
+  }
 }
 
 #==============================================================================
@@ -98,17 +196,12 @@ resource "helm_release" "metrics_server" {
     # Use custom values file if provided, otherwise empty string
     lookup(var.metrics_server, "values", "") != "" ? file(var.metrics_server.values) : "",
     # Convert map of values to YAML for Helm
-    yamlencode(lookup(var.metrics_server, "set_values", {}))
+    yamlencode(lookup(var.metrics_server, "set_values", {})),
+    # Individual value overrides
+    lookup(var.metrics_server, "set", {}) != {} ?
+    yamlencode(lookup(var.metrics_server, "set", {})) :
+    ""
   ]
-
-  # Dynamically set individual values (alternative to set_values for complex cases)
-  dynamic "set" {
-    for_each = lookup(var.metrics_server, "set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
 }
 
 #==============================================================================
@@ -136,16 +229,11 @@ resource "helm_release" "cluster_autoscaler" {
   # Values must be cloud-provider specific (AWS, Azure, GCP) to work correctly
   values = [
     lookup(var.cluster_autoscaler, "values", "") != "" ? file(var.cluster_autoscaler.values) : "",
-    yamlencode(lookup(var.cluster_autoscaler, "set_values", {}))
+    yamlencode(lookup(var.cluster_autoscaler, "set_values", {})),
+    lookup(var.cluster_autoscaler, "set", {}) != {} ?
+    yamlencode(lookup(var.cluster_autoscaler, "set", {})) :
+    ""
   ]
-
-  dynamic "set" {
-    for_each = lookup(var.cluster_autoscaler, "set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
 }
 
 #==============================================================================
@@ -175,24 +263,15 @@ resource "helm_release" "karpenter" {
   # Configure cloud provider-specific settings (AWS, Azure, GCP)
   values = [
     lookup(var.karpenter, "values", "") != "" ? file(var.karpenter.values) : "",
-    yamlencode(lookup(var.karpenter, "set_values", {}))
+    yamlencode(lookup(var.karpenter, "set_values", {})),
+    lookup(var.karpenter, "set", {}) != {} ?
+    yamlencode(lookup(var.karpenter, "set", {})) :
+    ""
   ]
-
-  dynamic "set" {
-    for_each = lookup(var.karpenter, "set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
 }
 
 #==============================================================================
 # NGINX Ingress Controller
-# Manages external HTTP/HTTPS access to services in the cluster by:
-# - Implementing Kubernetes Ingress resources as NGINX configuration
-# - Providing load balancing, SSL termination and name-based virtual hosting
-# - Supporting WebSocket, HTTP/2, and automatic TLS with cert-manager
 #==============================================================================
 resource "helm_release" "nginx_ingress" {
   count            = var.enable_nginx_ingress ? 1 : 0
@@ -205,71 +284,21 @@ resource "helm_release" "nginx_ingress" {
   timeout          = lookup(var.nginx_ingress, "timeout", local.default_timeout)
   create_namespace = lookup(var.nginx_ingress, "create_namespace", true)
 
-  # Deployment safety options
   atomic          = lookup(var.nginx_ingress, "atomic", true)
   cleanup_on_fail = lookup(var.nginx_ingress, "cleanup_on_fail", true)
   wait            = lookup(var.nginx_ingress, "wait", true)
 
-  # Configure controller type, replica count, and service settings
   values = [
     lookup(var.nginx_ingress, "values", "") != "" ? file(var.nginx_ingress.values) : "",
-    yamlencode(merge(
-      # Add high availability settings if in production
-      local.is_production ? {
-        controller = {
-          replicaCount = local.high_availability.replicas
-          podAnnotations = {
-            "cluster-autoscaler.kubernetes.io/safe-to-evict" = "true"
-          }
-          affinity = {
-            podAntiAffinity = {
-              preferredDuringSchedulingIgnoredDuringExecution = [{
-                weight = 100
-                podAffinityTerm = {
-                  labelSelector = {
-                    matchExpressions = [{
-                      key      = "app.kubernetes.io/name"
-                      operator = "In"
-                      values   = ["ingress-nginx"]
-                    }]
-                  }
-                  topologyKey = "kubernetes.io/hostname"
-                }
-              }]
-            }
-          }
-          resources = {
-            requests = {
-              cpu    = "100m"
-              memory = "128Mi"
-            }
-            limits = {
-              cpu    = "200m"
-              memory = "256Mi"
-            }
-          }
-        }
-      } : {},
-      lookup(var.nginx_ingress, "set_values", {})
-    ))
+    yamlencode(lookup(var.nginx_ingress, "set_values", {})),
+    lookup(var.nginx_ingress, "set", {}) != {} ?
+    yamlencode(lookup(var.nginx_ingress, "set", {})) :
+    ""
   ]
-
-  dynamic "set" {
-    for_each = lookup(var.nginx_ingress, "set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
 }
 
 #==============================================================================
 # Cert Manager
-# Automates certificate management in Kubernetes by:
-# - Managing issuers (Let's Encrypt, HashiCorp Vault, SelfSigned, etc.)
-# - Requesting and renewing TLS certificates
-# - Ensuring certificates are valid and up-to-date
-# - Supports integration with Ingress resources
 #==============================================================================
 resource "helm_release" "cert_manager" {
   count            = var.enable_cert_manager ? 1 : 0
@@ -282,61 +311,21 @@ resource "helm_release" "cert_manager" {
   timeout          = lookup(var.cert_manager, "timeout", local.default_timeout)
   create_namespace = lookup(var.cert_manager, "create_namespace", true)
 
-  # Deployment safety options
   atomic          = lookup(var.cert_manager, "atomic", true)
   cleanup_on_fail = lookup(var.cert_manager, "cleanup_on_fail", true)
   wait            = lookup(var.cert_manager, "wait", true)
 
-  # Important: Typically requires installCRDs=true for proper operation
   values = [
     lookup(var.cert_manager, "values", "") != "" ? file(var.cert_manager.values) : "",
-    yamlencode(merge(
-      {
-        installCRDs = true
-      },
-      # Add high availability settings if in production
-      local.is_production ? {
-        replicaCount = local.high_availability.replicas
-        podDisruptionBudget = {
-          enabled = true
-        }
-      } : {},
-      lookup(var.cert_manager, "set_values", {})
-    ))
+    yamlencode(lookup(var.cert_manager, "set_values", {})),
+    lookup(var.cert_manager, "set", {}) != {} ?
+    yamlencode(lookup(var.cert_manager, "set", {})) :
+    ""
   ]
-
-  dynamic "set" {
-    for_each = lookup(var.cert_manager, "set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
-}
-
-# Wait for cert-manager webhook to be available before deploying dependent resources
-resource "null_resource" "wait_for_cert_manager_webhook" {
-  count = var.enable_cert_manager ? 1 : 0
-
-  provisioner "local-exec" {
-    command = <<-EOT
-      kubectl wait --for=condition=Available deployment/cert-manager-webhook \
-        -n ${helm_release.cert_manager[0].namespace} --timeout=180s
-      kubectl wait --for=condition=Available deployment/cert-manager \
-        -n ${helm_release.cert_manager[0].namespace} --timeout=180s
-    EOT
-  }
-
-  depends_on = [helm_release.cert_manager]
 }
 
 #==============================================================================
 # External DNS
-# Synchronizes exposed Kubernetes Services and Ingresses with DNS providers:
-# - Automatically creates DNS records for services with public endpoints
-# - Supports AWS Route53, Google Cloud DNS, Azure DNS, and others
-# - Manages lifecycle of DNS records based on service/ingress existence
-# - Works with both Ingress resources and LoadBalancer services
 #==============================================================================
 resource "helm_release" "external_dns" {
   count            = var.enable_external_dns ? 1 : 0
@@ -349,146 +338,48 @@ resource "helm_release" "external_dns" {
   timeout          = lookup(var.external_dns, "timeout", local.default_timeout)
   create_namespace = lookup(var.external_dns, "create_namespace", true)
 
-  # Deployment safety options
   atomic          = lookup(var.external_dns, "atomic", true)
   cleanup_on_fail = lookup(var.external_dns, "cleanup_on_fail", true)
   wait            = lookup(var.external_dns, "wait", true)
 
-  # Requires provider-specific configuration (AWS/GCP/Azure credentials)
   values = [
     lookup(var.external_dns, "values", "") != "" ? file(var.external_dns.values) : "",
-    yamlencode(merge(
-      # Add high availability settings if in production
-      local.is_production ? {
-        replicaCount = local.high_availability.replicas
-      } : {},
-      lookup(var.external_dns, "set_values", {})
-    ))
-  ]
-
-  dynamic "set" {
-    for_each = lookup(var.external_dns, "set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
-
-  # Ensure cert-manager is ready if both are enabled
-  depends_on = [
-    helm_release.cert_manager,
-    null_resource.wait_for_cert_manager_webhook
+    yamlencode(lookup(var.external_dns, "set_values", {})),
+    lookup(var.external_dns, "set", {}) != {} ?
+    yamlencode(lookup(var.external_dns, "set", {})) :
+    ""
   ]
 }
 
 #==============================================================================
-# Prometheus Stack (Prometheus, Alertmanager, Grafana)
-# Comprehensive monitoring solution that includes:
-# - Prometheus: metrics collection and storage
-# - Alertmanager: alert routing and notification
-# - Grafana: metrics visualization and dashboarding
-# - Node exporter: hardware and OS metrics
-# - kube-state-metrics: Kubernetes objects metrics
-# - Pre-configured dashboards and alerting rules
+# Prometheus Stack
 #==============================================================================
 resource "helm_release" "prometheus_stack" {
-  count       = var.enable_prometheus_stack ? 1 : 0
-  name        = lookup(var.prometheus_stack, "name", "prometheus")
-  chart       = lookup(var.prometheus_stack, "chart", "kube-prometheus-stack")
-  repository  = lookup(var.prometheus_stack, "repository", "https://prometheus-community.github.io/helm-charts")
-  version     = lookup(var.prometheus_stack, "chart_version", null)
-  namespace   = lookup(var.prometheus_stack, "namespace", "monitoring")
-  max_history = lookup(var.prometheus_stack, "max_history", 10)
-  timeout = lookup(var.prometheus_stack, "timeout",
-    lookup(var.prometheus_stack, "timeout",
-  local.is_production ? local.timeouts["large"] : local.default_timeout))
+  count            = var.enable_prometheus_stack ? 1 : 0
+  name             = lookup(var.prometheus_stack, "name", "prometheus-stack")
+  chart            = lookup(var.prometheus_stack, "chart", "kube-prometheus-stack")
+  repository       = lookup(var.prometheus_stack, "repository", "https://prometheus-community.github.io/helm-charts")
+  version          = lookup(var.prometheus_stack, "chart_version", null)
+  namespace        = lookup(var.prometheus_stack, "namespace", "monitoring")
+  max_history      = lookup(var.prometheus_stack, "max_history", 10)
+  timeout          = lookup(var.prometheus_stack, "timeout", local.default_timeout)
   create_namespace = lookup(var.prometheus_stack, "create_namespace", true)
 
-  # Deployment safety options
   atomic          = lookup(var.prometheus_stack, "atomic", true)
   cleanup_on_fail = lookup(var.prometheus_stack, "cleanup_on_fail", true)
   wait            = lookup(var.prometheus_stack, "wait", true)
-  wait_for_jobs   = lookup(var.prometheus_stack, "wait_for_jobs", true)
 
-  # Complex chart with many configurable components and storage options
   values = [
     lookup(var.prometheus_stack, "values", "") != "" ? file(var.prometheus_stack.values) : "",
-    yamlencode(merge(
-      # Configure persistent storage with cloud provider optimized settings
-      {
-        prometheus = {
-          prometheusSpec = {
-            storageSpec = {
-              volumeClaimTemplate = {
-                spec = {
-                  storageClassName = local.storage_class
-                  accessModes      = ["ReadWriteOnce"]
-                  resources = {
-                    requests = {
-                      storage = lookup(
-                        lookup(var.prometheus_stack, "storage", {}),
-                        "size",
-                        local.is_production ? "100Gi" : "50Gi"
-                      )
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      # Add high availability settings if in production
-      local.is_production ? {
-        prometheus = {
-          prometheusSpec = {
-            replicas = local.high_availability.replicas
-            podAntiAffinity = {
-              preferredDuringSchedulingIgnoredDuringExecution = [{
-                weight = 100
-                podAffinityTerm = {
-                  labelSelector = {
-                    matchExpressions = [{
-                      key      = "app"
-                      operator = "In"
-                      values   = ["prometheus"]
-                    }]
-                  }
-                  topologyKey = "kubernetes.io/hostname"
-                }
-              }]
-            }
-          }
-        }
-        alertmanager = {
-          alertmanagerSpec = {
-            replicas = local.high_availability.replicas
-          }
-        }
-        grafana = {
-          replicas = local.high_availability.replicas
-        }
-      } : {},
-      lookup(var.prometheus_stack, "set_values", {})
-    ))
+    yamlencode(lookup(var.prometheus_stack, "set_values", {})),
+    lookup(var.prometheus_stack, "set", {}) != {} ?
+    yamlencode(lookup(var.prometheus_stack, "set", {})) :
+    ""
   ]
-
-  dynamic "set" {
-    for_each = lookup(var.prometheus_stack, "set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
 }
 
 #==============================================================================
-# Logging Stack (Fluent Bit)
-# Lightweight and efficient log processor and forwarder:
-# - Collects logs from the node filesystem and container runtime
-# - Processes logs with filters (parsing, enrichment)
-# - Forwards logs to various destinations (Elasticsearch, S3, Loki, etc.)
-# - Low memory footprint and high performance C implementation
+# Fluent Bit
 #==============================================================================
 resource "helm_release" "fluent_bit" {
   count            = var.enable_fluent_bit ? 1 : 0
@@ -501,50 +392,21 @@ resource "helm_release" "fluent_bit" {
   timeout          = lookup(var.fluent_bit, "timeout", local.default_timeout)
   create_namespace = lookup(var.fluent_bit, "create_namespace", true)
 
-  # Deployment safety options
   atomic          = lookup(var.fluent_bit, "atomic", true)
   cleanup_on_fail = lookup(var.fluent_bit, "cleanup_on_fail", true)
   wait            = lookup(var.fluent_bit, "wait", true)
 
-  # Configure inputs, parsers, filters and outputs
   values = [
     lookup(var.fluent_bit, "values", "") != "" ? file(var.fluent_bit.values) : "",
-    yamlencode(merge(
-      # Add tolerations to ensure logs are collected from all nodes
-      {
-        tolerations = [
-          {
-            key      = "node-role.kubernetes.io/master"
-            operator = "Exists"
-            effect   = "NoSchedule"
-          },
-          {
-            key      = "node-role.kubernetes.io/control-plane"
-            operator = "Exists"
-            effect   = "NoSchedule"
-          }
-        ]
-      },
-      lookup(var.fluent_bit, "set_values", {})
-    ))
+    yamlencode(lookup(var.fluent_bit, "set_values", {})),
+    lookup(var.fluent_bit, "set", {}) != {} ?
+    yamlencode(lookup(var.fluent_bit, "set", {})) :
+    ""
   ]
-
-  dynamic "set" {
-    for_each = lookup(var.fluent_bit, "set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
 }
 
 #==============================================================================
 # ArgoCD
-# GitOps continuous delivery tool for Kubernetes that:
-# - Syncs application definitions from Git repositories
-# - Monitors deployed applications for drift from desired state
-# - Automatically corrects drift by applying changes from Git
-# - Provides visualization and manual sync/rollback through UI
 #==============================================================================
 resource "helm_release" "argocd" {
   count            = var.enable_argocd ? 1 : 0
@@ -557,57 +419,21 @@ resource "helm_release" "argocd" {
   timeout          = lookup(var.argocd, "timeout", local.default_timeout)
   create_namespace = lookup(var.argocd, "create_namespace", true)
 
-  # Deployment safety options
   atomic          = lookup(var.argocd, "atomic", true)
   cleanup_on_fail = lookup(var.argocd, "cleanup_on_fail", true)
   wait            = lookup(var.argocd, "wait", true)
 
-  # Configure server, repositories, RBAC, and SSO
   values = [
     lookup(var.argocd, "values", "") != "" ? file(var.argocd.values) : "",
-    yamlencode(merge(
-      # Add high availability settings if in production
-      local.is_production ? {
-        controller = {
-          replicas = local.high_availability.replicas
-        }
-        server = {
-          replicas = local.high_availability.replicas
-          autoscaling = {
-            enabled     = true
-            minReplicas = local.high_availability.replicas
-            maxReplicas = 5
-          }
-        }
-        repoServer = {
-          replicas = local.high_availability.replicas
-          autoscaling = {
-            enabled     = true
-            minReplicas = local.high_availability.replicas
-            maxReplicas = 5
-          }
-        }
-      } : {},
-      lookup(var.argocd, "set_values", {})
-    ))
+    yamlencode(lookup(var.argocd, "set_values", {})),
+    lookup(var.argocd, "set", {}) != {} ?
+    yamlencode(lookup(var.argocd, "set", {})) :
+    ""
   ]
-
-  dynamic "set" {
-    for_each = lookup(var.argocd, "set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
 }
 
 #==============================================================================
-# Velero (Backup)
-# Kubernetes backup and disaster recovery solution that:
-# - Backs up Kubernetes cluster resources to object storage
-# - Snapshots persistent volumes with cloud provider APIs
-# - Schedules regular backups and handles retention
-# - Restores full clusters or selected resources
+# Velero
 #==============================================================================
 resource "helm_release" "velero" {
   count            = var.enable_velero ? 1 : 0
@@ -620,52 +446,21 @@ resource "helm_release" "velero" {
   timeout          = lookup(var.velero, "timeout", local.default_timeout)
   create_namespace = lookup(var.velero, "create_namespace", true)
 
-  # Deployment safety options
   atomic          = lookup(var.velero, "atomic", true)
   cleanup_on_fail = lookup(var.velero, "cleanup_on_fail", true)
   wait            = lookup(var.velero, "wait", true)
 
-  # Requires storage provider configuration (S3, GCS, Azure Blob)
   values = [
     lookup(var.velero, "values", "") != "" ? file(var.velero.values) : "",
-    yamlencode(merge(
-      # Configure default schedules for production environments
-      local.is_production ? {
-        schedules = {
-          daily-backup = {
-            schedule = "0 1 * * *" # 1:00 AM every day
-            template = {
-              ttl                     = "720h" # 30 days
-              includedNamespaces      = ["*"]
-              excludedNamespaces      = ["kube-system"]
-              includedResources       = ["*"]
-              excludedResources       = [""]
-              includeClusterResources = true
-              snapshotVolumes         = true
-            }
-          }
-        }
-      } : {},
-      lookup(var.velero, "set_values", {})
-    ))
+    yamlencode(lookup(var.velero, "set_values", {})),
+    lookup(var.velero, "set", {}) != {} ?
+    yamlencode(lookup(var.velero, "set", {})) :
+    ""
   ]
-
-  dynamic "set" {
-    for_each = lookup(var.velero, "set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
 }
 
 #==============================================================================
 # Sealed Secrets
-# Secure secret management for Kubernetes that:
-# - Encrypts secrets so they can be safely stored in Git
-# - Uses asymmetric cryptography (public/private key)
-# - Controller in the cluster decrypts sealed secrets automatically
-# - Enables GitOps workflows with sensitive information
 #==============================================================================
 resource "helm_release" "sealed_secrets" {
   count            = var.enable_sealed_secrets ? 1 : 0
@@ -678,222 +473,21 @@ resource "helm_release" "sealed_secrets" {
   timeout          = lookup(var.sealed_secrets, "timeout", local.default_timeout)
   create_namespace = lookup(var.sealed_secrets, "create_namespace", false)
 
-  # Deployment safety options
   atomic          = lookup(var.sealed_secrets, "atomic", true)
   cleanup_on_fail = lookup(var.sealed_secrets, "cleanup_on_fail", true)
   wait            = lookup(var.sealed_secrets, "wait", true)
 
-  # Configure key rotation, secret scope, and monitoring
   values = [
     lookup(var.sealed_secrets, "values", "") != "" ? file(var.sealed_secrets.values) : "",
-    yamlencode(merge(
-      # Add high availability settings if in production
-      local.is_production ? {
-        replicaCount = local.high_availability.replicas
-        podAntiAffinity = {
-          preferredDuringSchedulingIgnoredDuringExecution = [{
-            weight = 100
-            podAffinityTerm = {
-              labelSelector = {
-                matchExpressions = [{
-                  key      = "app.kubernetes.io/name"
-                  operator = "In"
-                  values   = ["sealed-secrets"]
-                }]
-              }
-              topologyKey = "kubernetes.io/hostname"
-            }
-          }]
-        }
-      } : {},
-      lookup(var.sealed_secrets, "set_values", {})
-    ))
+    yamlencode(lookup(var.sealed_secrets, "set_values", {})),
+    lookup(var.sealed_secrets, "set", {}) != {} ?
+    yamlencode(lookup(var.sealed_secrets, "set", {})) :
+    ""
   ]
-
-  dynamic "set" {
-    for_each = lookup(var.sealed_secrets, "set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
 }
 
 #==============================================================================
-# Istio Service Mesh
-# Advanced networking platform that provides:
-# - Traffic management with fine-grained routing control
-# - Security with mTLS encryption between services
-# - Observability with distributed tracing and metrics
-# - Multi-cluster and multi-environment support
-#
-# Deployed in three stages:
-# 1. Base CRDs and cluster resources
-# 2. Istiod control plane
-# 3. Ingress gateway (optional)
-#==============================================================================
-
-# 1. Istio Base - CRDs and cluster resources
-resource "helm_release" "istio_base" {
-  count            = var.enable_istio ? 1 : 0
-  name             = lookup(var.istio, "base_name", "istio-base")
-  chart            = lookup(var.istio, "base_chart", "base")
-  repository       = lookup(var.istio, "repository", "https://istio-release.storage.googleapis.com/charts")
-  version          = lookup(var.istio, "chart_version", null)
-  namespace        = lookup(var.istio, "namespace", "istio-system")
-  max_history      = lookup(var.istio, "max_history", 10)
-  timeout          = lookup(var.istio, "timeout", local.default_timeout)
-  create_namespace = lookup(var.istio, "create_namespace", true)
-
-  # Deployment safety options
-  atomic          = lookup(var.istio, "atomic", true)
-  cleanup_on_fail = lookup(var.istio, "cleanup_on_fail", true)
-  wait            = lookup(var.istio, "wait", true)
-
-  # Base chart contains CRDs and cluster resources
-  values = [
-    lookup(var.istio, "base_values", "") != "" ? file(var.istio.base_values) : "",
-    yamlencode(lookup(var.istio, "base_set_values", {}))
-  ]
-
-  dynamic "set" {
-    for_each = lookup(var.istio, "base_set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
-}
-
-# Wait for Istio CRDs to be available
-resource "null_resource" "wait_for_istio_crds" {
-  count = var.enable_istio ? 1 : 0
-
-  provisioner "local-exec" {
-    command = "kubectl wait --for=condition=Established crd/virtualservices.networking.istio.io --timeout=90s"
-  }
-
-  depends_on = [helm_release.istio_base]
-}
-
-# 2. Istiod - Istio control plane
-resource "helm_release" "istiod" {
-  count            = var.enable_istio ? 1 : 0
-  name             = lookup(var.istio, "istiod_name", "istiod")
-  chart            = lookup(var.istio, "istiod_chart", "istiod")
-  repository       = lookup(var.istio, "repository", "https://istio-release.storage.googleapis.com/charts")
-  version          = lookup(var.istio, "chart_version", null)
-  namespace        = lookup(var.istio, "namespace", "istio-system")
-  max_history      = lookup(var.istio, "max_history", 10)
-  timeout          = lookup(var.istio, "timeout", local.default_timeout)
-  create_namespace = false # Already created by istio-base
-
-  # Deployment safety options
-  atomic          = lookup(var.istio, "atomic", true)
-  cleanup_on_fail = lookup(var.istio, "cleanup_on_fail", true)
-  wait            = lookup(var.istio, "wait", true)
-
-  # Istiod is the control plane that configures the service mesh
-  values = [
-    lookup(var.istio, "istiod_values", "") != "" ? file(var.istio.istiod_values) : "",
-    yamlencode(merge(
-      # Add high availability settings if in production
-      local.is_production ? {
-        pilot = {
-          replicaCount     = local.high_availability.replicas
-          autoscaleEnabled = true
-          autoscaleMin     = local.high_availability.replicas
-          autoscaleMax     = 5
-          resources = {
-            requests = {
-              cpu    = "500m"
-              memory = "2Gi"
-            }
-          }
-        }
-      } : {},
-      lookup(var.istio, "istiod_set_values", {})
-    ))
-  ]
-
-  dynamic "set" {
-    for_each = lookup(var.istio, "istiod_set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
-
-  # Must deploy after istio-base installs CRDs
-  depends_on = [
-    helm_release.istio_base,
-    null_resource.wait_for_istio_crds
-  ]
-}
-
-# 3. Istio Ingress Gateway - Entry point for external traffic
-resource "helm_release" "istio_ingress" {
-  count            = var.enable_istio && lookup(var.istio, "enable_ingress", true) ? 1 : 0
-  name             = lookup(var.istio, "ingress_name", "istio-ingress")
-  chart            = lookup(var.istio, "ingress_chart", "gateway")
-  repository       = lookup(var.istio, "repository", "https://istio-release.storage.googleapis.com/charts")
-  version          = lookup(var.istio, "chart_version", null)
-  namespace        = lookup(var.istio, "namespace", "istio-system")
-  max_history      = lookup(var.istio, "max_history", 10)
-  timeout          = lookup(var.istio, "timeout", local.default_timeout)
-  create_namespace = false # Already created by istio-base
-
-  # Deployment safety options
-  atomic          = lookup(var.istio, "atomic", true)
-  cleanup_on_fail = lookup(var.istio, "cleanup_on_fail", true)
-  wait            = lookup(var.istio, "wait", true)
-
-  # Gateway provides the entry point for traffic into the mesh
-  values = [
-    lookup(var.istio, "ingress_values", "") != "" ? file(var.istio.ingress_values) : "",
-    yamlencode(merge(
-      # Add high availability settings if in production
-      local.is_production ? {
-        replicaCount = local.high_availability.replicas
-        autoscaling = {
-          enabled     = true
-          minReplicas = local.high_availability.replicas
-          maxReplicas = 5
-        }
-        resources = {
-          requests = {
-            cpu    = "100m"
-            memory = "128Mi"
-          }
-          limits = {
-            cpu    = "2000m"
-            memory = "1024Mi"
-          }
-        }
-      } : {},
-      lookup(var.istio, "ingress_set_values", {})
-    ))
-  ]
-
-  dynamic "set" {
-    for_each = lookup(var.istio, "ingress_set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
-
-  # Must deploy after istiod is running
-  depends_on = [helm_release.istiod]
-}
-
-#==============================================================================
-# Kyverno - Policy Management Engine
-# Kubernetes policy engine that:
-# - Validates, mutates, and generates resources
-# - Enforces security and compliance requirements
-# - Provides policy reports and audit capabilities
-# - Supports pre-admission webhooks and background scanning
+# Kyverno
 #==============================================================================
 resource "helm_release" "kyverno" {
   count            = var.enable_kyverno ? 1 : 0
@@ -906,49 +500,21 @@ resource "helm_release" "kyverno" {
   timeout          = lookup(var.kyverno, "timeout", local.default_timeout)
   create_namespace = lookup(var.kyverno, "create_namespace", true)
 
-  # Deployment safety options
   atomic          = lookup(var.kyverno, "atomic", true)
   cleanup_on_fail = lookup(var.kyverno, "cleanup_on_fail", true)
   wait            = lookup(var.kyverno, "wait", true)
 
-  # Configure policy engine options and monitoring integration
   values = [
     lookup(var.kyverno, "values", "") != "" ? file(var.kyverno.values) : "",
-    yamlencode(merge(
-      # Add high availability settings if in production
-      local.is_production ? {
-        replicaCount = local.high_availability.replicas
-        resources = {
-          limits = {
-            cpu    = "1000m"
-            memory = "512Mi"
-          }
-          requests = {
-            cpu    = "100m"
-            memory = "128Mi"
-          }
-        }
-      } : {},
-      lookup(var.kyverno, "set_values", {})
-    ))
+    yamlencode(lookup(var.kyverno, "set_values", {})),
+    lookup(var.kyverno, "set", {}) != {} ?
+    yamlencode(lookup(var.kyverno, "set", {})) :
+    ""
   ]
-
-  dynamic "set" {
-    for_each = lookup(var.kyverno, "set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
 }
 
 #==============================================================================
-# Crossplane - Universal Control Plane
-# Extends Kubernetes with:
-# - Custom Resource Definitions (XRDs) for cloud resources
-# - Infrastructure as Code directly from Kubernetes
-# - Composition of complex infrastructure from simple abstractions
-# - Multi-cloud and hybrid cloud resource management
+# Crossplane
 #==============================================================================
 resource "helm_release" "crossplane" {
   count            = var.enable_crossplane ? 1 : 0
@@ -961,33 +527,21 @@ resource "helm_release" "crossplane" {
   timeout          = lookup(var.crossplane, "timeout", local.default_timeout)
   create_namespace = lookup(var.crossplane, "create_namespace", true)
 
-  # Deployment safety options
   atomic          = lookup(var.crossplane, "atomic", true)
   cleanup_on_fail = lookup(var.crossplane, "cleanup_on_fail", true)
   wait            = lookup(var.crossplane, "wait", true)
 
-  # Configure providers and resource management options
   values = [
     lookup(var.crossplane, "values", "") != "" ? file(var.crossplane.values) : "",
-    yamlencode(lookup(var.crossplane, "set_values", {}))
+    yamlencode(lookup(var.crossplane, "set_values", {})),
+    lookup(var.crossplane, "set", {}) != {} ?
+    yamlencode(lookup(var.crossplane, "set", {})) :
+    ""
   ]
-
-  dynamic "set" {
-    for_each = lookup(var.crossplane, "set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
 }
 
 #==============================================================================
 # AWS Load Balancer Controller
-# AWS-specific controller that:
-# - Manages AWS Elastic Load Balancers for Kubernetes Services
-# - Implements the Ingress API using Application Load Balancers
-# - Supports Network Load Balancers for high-performance workloads
-# - Enables additional AWS-specific annotations and features
 #==============================================================================
 resource "helm_release" "aws_load_balancer_controller" {
   count            = var.enable_aws_load_balancer_controller ? 1 : 0
@@ -1000,28 +554,94 @@ resource "helm_release" "aws_load_balancer_controller" {
   timeout          = lookup(var.aws_load_balancer_controller, "timeout", local.default_timeout)
   create_namespace = lookup(var.aws_load_balancer_controller, "create_namespace", false)
 
-  # Deployment safety options
   atomic          = lookup(var.aws_load_balancer_controller, "atomic", true)
   cleanup_on_fail = lookup(var.aws_load_balancer_controller, "cleanup_on_fail", true)
   wait            = lookup(var.aws_load_balancer_controller, "wait", true)
 
-  # Configure AWS-specific settings and IAM integration
   values = [
     lookup(var.aws_load_balancer_controller, "values", "") != "" ? file(var.aws_load_balancer_controller.values) : "",
-    yamlencode(merge(
-      # Add high availability settings if in production
-      local.is_production ? {
-        replicaCount = local.high_availability.replicas
-      } : {},
-      lookup(var.aws_load_balancer_controller, "set_values", {})
-    ))
+    yamlencode(lookup(var.aws_load_balancer_controller, "set_values", {})),
+    lookup(var.aws_load_balancer_controller, "set", {}) != {} ?
+    yamlencode(lookup(var.aws_load_balancer_controller, "set", {})) :
+    ""
   ]
+}
 
-  dynamic "set" {
-    for_each = lookup(var.aws_load_balancer_controller, "set", {})
-    content {
-      name  = set.key
-      value = set.value
-    }
-  }
+#==============================================================================
+# Istio Service Mesh
+#==============================================================================
+resource "helm_release" "istio_base" {
+  count            = var.enable_istio ? 1 : 0
+  name             = lookup(var.istio, "base_name", "istio-base")
+  chart            = lookup(var.istio, "base_chart", "base")
+  repository       = lookup(var.istio, "repository", "https://istio-release.storage.googleapis.com/charts")
+  version          = lookup(var.istio, "chart_version", null)
+  namespace        = lookup(var.istio, "namespace", "istio-system")
+  max_history      = lookup(var.istio, "max_history", 10)
+  timeout          = lookup(var.istio, "timeout", local.default_timeout)
+  create_namespace = lookup(var.istio, "create_namespace", true)
+
+  atomic          = lookup(var.istio, "atomic", true)
+  cleanup_on_fail = lookup(var.istio, "cleanup_on_fail", true)
+  wait            = lookup(var.istio, "wait", true)
+
+  values = [
+    lookup(var.istio, "base_values", "") != "" ? file(var.istio.base_values) : "",
+    yamlencode(lookup(var.istio, "base_set_values", {})),
+    lookup(var.istio, "base_set", {}) != {} ?
+    yamlencode(lookup(var.istio, "base_set", {})) :
+    ""
+  ]
+}
+
+resource "helm_release" "istiod" {
+  count            = var.enable_istio ? 1 : 0
+  name             = lookup(var.istio, "istiod_name", "istiod")
+  chart            = lookup(var.istio, "istiod_chart", "istiod")
+  repository       = lookup(var.istio, "repository", "https://istio-release.storage.googleapis.com/charts")
+  version          = lookup(var.istio, "chart_version", null)
+  namespace        = lookup(var.istio, "namespace", "istio-system")
+  max_history      = lookup(var.istio, "max_history", 10)
+  timeout          = lookup(var.istio, "timeout", local.default_timeout)
+  create_namespace = false
+
+  atomic          = lookup(var.istio, "atomic", true)
+  cleanup_on_fail = lookup(var.istio, "cleanup_on_fail", true)
+  wait            = lookup(var.istio, "wait", true)
+
+  depends_on = [helm_release.istio_base]
+
+  values = [
+    lookup(var.istio, "istiod_values", "") != "" ? file(var.istio.istiod_values) : "",
+    yamlencode(lookup(var.istio, "istiod_set_values", {})),
+    lookup(var.istio, "istiod_set", {}) != {} ?
+    yamlencode(lookup(var.istio, "istiod_set", {})) :
+    ""
+  ]
+}
+
+resource "helm_release" "istio_ingress" {
+  count            = var.enable_istio && lookup(var.istio, "enable_ingress", true) ? 1 : 0
+  name             = lookup(var.istio, "ingress_name", "istio-ingress")
+  chart            = lookup(var.istio, "ingress_chart", "gateway")
+  repository       = lookup(var.istio, "repository", "https://istio-release.storage.googleapis.com/charts")
+  version          = lookup(var.istio, "chart_version", null)
+  namespace        = lookup(var.istio, "ingress_namespace", "istio-ingress")
+  max_history      = lookup(var.istio, "max_history", 10)
+  timeout          = lookup(var.istio, "timeout", local.default_timeout)
+  create_namespace = lookup(var.istio, "create_ingress_namespace", true)
+
+  atomic          = lookup(var.istio, "atomic", true)
+  cleanup_on_fail = lookup(var.istio, "cleanup_on_fail", true)
+  wait            = lookup(var.istio, "wait", true)
+
+  depends_on = [helm_release.istiod]
+
+  values = [
+    lookup(var.istio, "ingress_values", "") != "" ? file(var.istio.ingress_values) : "",
+    yamlencode(lookup(var.istio, "ingress_set_values", {})),
+    lookup(var.istio, "ingress_set", {}) != {} ?
+    yamlencode(lookup(var.istio, "ingress_set", {})) :
+    ""
+  ]
 }

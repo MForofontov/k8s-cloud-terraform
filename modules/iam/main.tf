@@ -32,7 +32,7 @@ terraform {
     }
     google = {
       source  = "hashicorp/google"
-      version = "~> 6.43.0"
+      version = "~> 6.44.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
@@ -304,7 +304,7 @@ metadata:
 spec:
   type: 0
   resourceID: ${azuread_service_principal.k8s_sp[0].id}
-  clientID: ${azuread_application.k8s_app[0].application_id}
+  clientID: ${azuread_application.k8s_app[0].client_id}
 YAML
 
   depends_on = [

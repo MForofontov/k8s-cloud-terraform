@@ -43,7 +43,7 @@ A comprehensive Terraform module to provision and manage Google Kubernetes Engin
 | Name | Version |
 |------|---------|
 | terraform | >= 1.0.0 |
-| google | ~> 6.43.0 |
+| google | ~> 6.44.0 |
 | google-beta | ~> 6.44.0 |
 | kubernetes | ~> 2.37.1 |
 

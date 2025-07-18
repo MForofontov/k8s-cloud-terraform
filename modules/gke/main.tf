@@ -21,7 +21,7 @@ terraform {
   required_providers {
     google = {
       source  = "hashicorp/google"
-      version = "~> 6.43.0"
+      version = "~> 6.44.0"
     }
     google-beta = {
       source  = "hashicorp/google-beta"
@@ -64,12 +64,7 @@ resource "google_container_cluster" "this" {
   # Node Locations
   # For regional clusters, specifies which zones to deploy nodes in
   #--------------------------------------------------------------
-  dynamic "node_locations" {
-    for_each = var.regional_cluster && length(var.node_locations) > 0 ? [1] : []
-    content {
-      locations = var.node_locations # List of zones within the region for node placement
-    }
-  }
+  node_locations = var.regional_cluster && length(var.node_locations) > 0 ? var.node_locations : null
 
   #--------------------------------------------------------------
   # Default Node Pool Configuration
@@ -391,12 +386,7 @@ resource "google_container_node_pool" "default" {
     # Local SSD Configuration
     # Adds high-performance local storage to nodes
     #----------------------------------------------------------
-    dynamic "local_ssd_count" {
-      for_each = var.default_local_ssd_count > 0 ? [1] : []
-      content {
-        count = var.default_local_ssd_count # Number of 375GB local SSD disks
-      }
-    }
+    local_ssd_count = var.default_local_ssd_count # Number of 375GB local SSD disks
 
     #----------------------------------------------------------
     # Tags and Metadata
@@ -530,12 +520,7 @@ resource "google_container_node_pool" "additional" {
     # Local SSD Configuration
     # High-performance local storage
     #----------------------------------------------------------
-    dynamic "local_ssd_count" {
-      for_each = each.value.local_ssd_count != null && each.value.local_ssd_count > 0 ? [1] : []
-      content {
-        count = each.value.local_ssd_count
-      }
-    }
+    local_ssd_count = each.value.local_ssd_count != null ? each.value.local_ssd_count : 0
 
     #----------------------------------------------------------
     # Tags and Metadata

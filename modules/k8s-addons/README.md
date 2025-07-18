@@ -71,7 +71,7 @@ module "kubernetes_addons" {
 | terraform | >= 1.0.0 |
 | aws | >= 5.82.0 |
 | azurerm | >= 4.14.0 |
-| google | >= 6.14.0 |
+| google | >= 6.44.0 |
 | kubernetes | >= 2.16.0 |
 | helm | >= 2.16.0 |
 | kubectl | >= 1.19.0 |
