@@ -62,7 +62,7 @@ module "gke" {
   cluster_name = "dev-gke"
   region       = var.gcp_region
   network      = module.networking.gcp_network_name
-  subnetwork   = module.networking.gcp_subnetwork_names[0]
+  subnetwork   = module.networking.subnet_names[0]
 
   # Basic cluster configuration
   regional_cluster   = true
