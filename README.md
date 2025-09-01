@@ -1,42 +1,58 @@
-# Kubernetes Cloud Terraform
+# k8s-cloud-terraform
 
-This repository contains Terraform configurations and reusable modules for provisioning Kubernetes clusters and supporting infrastructure across multiple cloud providers. Example environments are provided under `environments/`.
+[![Terraform Checks](https://github.com/MForofontov/k8s-cloud-terraform/actions/workflows/terraform.yml/badge.svg)](https://github.com/MForofontov/k8s-cloud-terraform/actions/workflows/terraform.yml)
 
-## Prerequisites
+A curated, multi-cloud Terraform infrastructure repository for Kubernetes clusters and supporting resources. This project includes modular code for AKS, EKS, GKE, IAM, networking, storage, and Kubernetes add-ons, designed for production-grade deployments across AWS, Azure, and GCP.
 
-- **Terraform**: Install [Terraform](https://developer.hashicorp.com/terraform/downloads) 1.x on your workstation.
-- **Cloud credentials**: Configure credentials for the cloud provider you plan to use (e.g. AWS, Azure, or GCP) so Terraform can authenticate.
+## Disclaimer
+This infrastructure code provisions cloud resources that may incur costs and affect your cloud environment. **Review all modules and variables before applying. Use at your own risk.**
 
-## Getting Started (Dev Environment)
+## Getting Started
 
-1. **Initialize** the Terraform working directory:
-   ```bash
-   ./scripts/init.sh
-   ```
-   By default this initializes the `environments/dev` configuration.
-2. **Review the plan** of changes Terraform will make:
-   ```bash
-   ./scripts/plan.sh
-   ```
-   This script runs `terraform plan -input=false` so it won't prompt for
-   variable values interactively.
-3. **Apply** the configuration to create resources:
-   ```bash
-   ./scripts/apply.sh
-   ```
-   The apply script uses `terraform apply -auto-approve -input=false` to
-   skip the confirmation prompt during automated runs.
+### Clone the repository
+```bash
+git clone https://github.com/MForofontov/k8s-cloud-terraform.git
+cd k8s-cloud-terraform
+```
 
-Variables for the dev environment can be adjusted in `environments/dev/terraform.tfvars`.
+### Initialize and validate Terraform modules
+```bash
+terraform init
+terraform validate
+```
 
-## Module Structure
+### Format all Terraform code
+```bash
+terraform fmt -recursive
+```
 
-- `modules/aks` – Azure Kubernetes Service cluster module.
-- `modules/eks` – Amazon EKS cluster module.
-- `modules/gke` – Google Kubernetes Engine cluster module.
-- `modules/networking` – Networking and VPC resources.
-- `modules/storage` – Cloud storage (buckets, etc.).
-- `modules/iam` – IAM roles and policies.
-- `modules/k8s-addons` – Common Kubernetes addons.
+### Run checks with GitHub Actions
+Terraform format and validation are automatically run on pushes and pull requests via GitHub Actions.
 
-Each environment directory (for example `environments/dev`) composes these modules to build a full cluster.
+## Directory Overview
+
+### environments
+Environment-specific configurations (e.g. `dev`, `prod`). Each contains its own `main.tf`, `variables.tf`, and `terraform.tfvars`.
+
+### modules
+Reusable infrastructure modules:
+- **aks**: Azure Kubernetes Service
+- **eks**: Amazon EKS
+- **gke**: Google Kubernetes Engine
+- **iam**: Cross-cloud identity and access management
+- **networking**: VPC/VNet, subnets, firewall rules
+- **storage**: Cloud storage resources
+- **k8s-addons**: Helm-based Kubernetes add-ons (monitoring, ingress, etc.)
+
+### scripts
+Helper scripts for Terraform workflows and codebase maintenance (e.g. `apply.sh`, `plan.sh`, `init.sh`).
+
+## Contributing
+Contributions are welcome. Add new modules or scripts in the appropriate folder and include clear usage instructions in the README or script file.
+
+## Authors
+
+- [Mykyta Forofontov](https://github.com/MForofontov)
+
+## License
+This project is licensed under the terms of the [MIT License](LICENSE).
